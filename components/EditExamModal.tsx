@@ -1,0 +1,464 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { Edit3, X, Users, Award, AlertCircle, Loader2 } from "lucide-react";
+import { updateExamSession } from "@/app/actions/exam";
+
+import { ExamSessionFull } from "@/components/ExamSessionList";
+
+interface CoachItem {
+    id: string;
+    fullName: string;
+    currentRank: string;
+}
+
+interface CandidateItem {
+    id: string;
+    studentCode: string;
+    fullName: string;
+    currentRank: string;
+    dateOfBirth: Date | string | null;
+    dojo: string;
+    isEligible: boolean;
+    suggestedNextRank: string;
+}
+
+interface Props {
+    exam: ExamSessionFull;
+    coaches: CoachItem[];
+    candidates: CandidateItem[];
+}
+
+const AVAILABLE_BELTS: readonly string[] = [
+    "Đai xanh 1 vạch",
+    "Đai xanh 2 vạch",
+    "Đai xanh 3 vạch",
+    "Đai nâu 1 vạch",
+    "Đai nâu 2 vạch",
+    "Đai nâu 3 vạch",
+];
+
+export default function EditExamModal({ exam, coaches, candidates }: Props) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+
+    // Khởi tạo state từ dữ liệu kỳ thi hiện tại
+    const initialDateObj = new Date(exam.examDate);
+    const initialDate = initialDateObj.toISOString().split("T")[0];
+    const initialTime = initialDateObj.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+    const [title, setTitle] = useState(exam.title);
+    const [examDate, setExamDate] = useState(initialDate);
+    const [examTime, setExamTime] = useState(initialTime);
+    const [dojo] = useState(exam.dojo);
+    const [headCoachPresent, setHeadCoachPresent] = useState(exam.headCoachPresent);
+
+    // Ban chấm thi
+    const [selectedExaminers, setSelectedExaminers] = useState<Record<string, { role: string; rank: string; fullName: string }>>(() => {
+        const map: Record<string, { role: string; rank: string; fullName: string }> = {};
+        exam.examiners.forEach((ex) => {
+            const coach = coaches.find((c) => c.fullName === ex.fullName);
+            if (coach) {
+                map[coach.id] = {
+                    fullName: ex.fullName,
+                    rank: ex.rank,
+                    role: ex.role,
+                };
+            }
+        });
+        return map;
+    });
+
+    // Môn sinh tham gia
+    const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>(() =>
+        exam.candidates.map((c) => c.student.id)
+    );
+    const [customRanks, setCustomRanks] = useState<Record<string, string>>(() => {
+        const map: Record<string, string> = {};
+        exam.candidates.forEach((c) => {
+            map[c.student.id] = c.targetRank;
+        });
+        return map;
+    });
+    const [globalSpecialReason, setGlobalSpecialReason] = useState(() => {
+        const special = exam.candidates.find((c) => c.isSpecial && c.specialReason);
+        return special?.specialReason || "";
+    });
+
+    const toggleExaminer = (coach: CoachItem) => {
+        setSelectedExaminers((prev) => {
+            const next = { ...prev };
+            if (next[coach.id]) {
+                delete next[coach.id];
+            } else {
+                next[coach.id] = {
+                    fullName: coach.fullName,
+                    rank: coach.currentRank,
+                    role: "Chấm phụ",
+                };
+            }
+            return next;
+        });
+    };
+
+    const updateExaminerRole = (coachId: string, role: string) => {
+        setSelectedExaminers((prev) => {
+            const current = prev[coachId];
+            if (!current) return prev;
+            return {
+                ...prev,
+                [coachId]: { ...current, role },
+            };
+        });
+    };
+
+    const toggleCandidate = (id: string) => {
+        setSelectedStudentIds((prev) =>
+            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+        );
+    };
+
+    const updateCustomRank = (id: string, rank: string) => {
+        setCustomRanks((prev) => ({ ...prev, [id]: rank }));
+    };
+
+    const selectedStudents = candidates.filter((c) => selectedStudentIds.includes(c.id));
+    const eligibleStudents = selectedStudents.filter((c) => c.isEligible);
+    const specialStudents = selectedStudents.filter((c) => !c.isEligible);
+
+    const handleUpdate = () => {
+        if (selectedStudents.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 môn sinh tham dự kỳ thi!");
+            return;
+        }
+
+        const examinerList: Array<{ order: number; fullName: string; rank: string; role: string }> = [];
+        if (headCoachPresent) {
+            examinerList.push({
+                order: 0,
+                fullName: "Nguyễn Trần Anh Vũ",
+                rank: "Đai đen (Sandan - 3 Đẳng)",
+                role: "Chấm chính",
+            });
+        }
+
+        Object.values(selectedExaminers).forEach((ex, idx) => {
+            examinerList.push({
+                order: idx + 1,
+                fullName: ex.fullName,
+                rank: ex.rank,
+                role: ex.role,
+            });
+        });
+
+        startTransition(async () => {
+            try {
+                await updateExamSession({
+                    examId: exam.id,
+                    title,
+                    examDate: `${examDate}T${examTime}:00`,
+                    dojo,
+                    headCoachPresent,
+                    examiners: examinerList,
+                    candidates: selectedStudents.map((s) => ({
+                        studentId: s.id,
+                        targetRank: customRanks[s.id] || s.suggestedNextRank,
+                        isSpecial: !s.isEligible,
+                        specialReason: !s.isEligible ? globalSpecialReason : undefined,
+                    })),
+                });
+
+                setIsOpen(false);
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật kỳ thi!";
+                alert(message);
+            }
+        });
+    };
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={() => setIsOpen(true)}
+                className="p-1.5 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Chỉnh sửa kỳ thi"
+            >
+                <Edit3 className="w-4 h-4" />
+            </button>
+
+            {isOpen && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-4xl w-full p-6 space-y-6 shadow-2xl border border-slate-200 dark:border-slate-800 my-8">
+                        {/* Header Modal */}
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                                <Edit3 className="w-6 h-6" />
+                                <h2 className="font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white">
+                                    Chỉnh Sửa Kỳ Thi Thăng Đai
+                                </h2>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsOpen(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* 1. HLV Trưởng tham gia */}
+                        <div className="p-4 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <span className="font-bold text-sm text-amber-900 dark:text-amber-200 block">
+                                    HLV Trưởng có tham gia chấm kỳ thi này không?
+                                </span>
+                                <span className="text-xs text-amber-700 dark:text-amber-400">
+                                    Nếu chọn Có, Thầy Nguyễn Trần Anh Vũ sẽ đứng đầu Ban chấm thi với vai trò Chấm chính.
+                                </span>
+                            </div>
+                            <div className="flex items-center space-x-4 shrink-0">
+                                <label className="inline-flex items-center space-x-1.5 cursor-pointer text-sm font-semibold">
+                                    <input
+                                        type="radio"
+                                        name={`edit-headCoach-${exam.id}`}
+                                        checked={headCoachPresent}
+                                        onChange={() => setHeadCoachPresent(true)}
+                                        className="text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span>Có</span>
+                                </label>
+                                <label className="inline-flex items-center space-x-1.5 cursor-pointer text-sm font-semibold">
+                                    <input
+                                        type="radio"
+                                        name={`edit-headCoach-${exam.id}`}
+                                        checked={!headCoachPresent}
+                                        onChange={() => setHeadCoachPresent(false)}
+                                        className="text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span>Không</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* 2. Thông tin cơ bản */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                            <div className="sm:col-span-2">
+                                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                    Tên kỳ thi:
+                                </label>
+                                <input
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                    Ngày thi:
+                                </label>
+                                <input
+                                    type="date"
+                                    value={examDate}
+                                    onChange={(e) => setExamDate(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                    Giờ thi:
+                                </label>
+                                <input
+                                    type="time"
+                                    value={examTime}
+                                    onChange={(e) => setExamTime(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 3. Ban chấm thi */}
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Users className="w-4 h-4 text-blue-500" />
+                                <span>Thành phần Ban chấm thi</span>
+                            </h3>
+
+                            <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-50 dark:bg-slate-800 font-semibold text-slate-500">
+                                        <tr>
+                                            <th className="p-2.5 w-12 text-center">Chọn</th>
+                                            <th className="p-2.5">Họ và tên HLV</th>
+                                            <th className="p-2.5">Cấp đai</th>
+                                            <th className="p-2.5">VAI TRÒ CHẤM THI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {headCoachPresent && (
+                                            <tr className="bg-amber-50/40 dark:bg-amber-950/20 font-semibold">
+                                                <td className="p-2.5 text-center text-amber-600">★</td>
+                                                <td className="p-2.5 text-slate-900 dark:text-white">
+                                                    Nguyễn Trần Anh Vũ (HLV Trưởng)
+                                                </td>
+                                                <td className="p-2.5 text-amber-700 dark:text-amber-400">
+                                                    Đai đen (Sandan - 3 Đẳng)
+                                                </td>
+                                                <td className="p-2.5 font-bold text-red-600">Chấm chính</td>
+                                            </tr>
+                                        )}
+                                        {coaches.map((c) => {
+                                            const isSelected = Boolean(selectedExaminers[c.id]);
+                                            return (
+                                                <tr key={c.id}>
+                                                    <td className="p-2.5 text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isSelected}
+                                                            onChange={() => toggleExaminer(c)}
+                                                            className="rounded text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                    </td>
+                                                    <td className="p-2.5 font-medium text-slate-800 dark:text-slate-200">
+                                                        {c.fullName}
+                                                    </td>
+                                                    <td className="p-2.5 text-slate-500">{c.currentRank}</td>
+                                                    <td className="p-2.5">
+                                                        {isSelected && selectedExaminers[c.id] ? (
+                                                            <select
+                                                                value={selectedExaminers[c.id].role}
+                                                                onChange={(e) => updateExaminerRole(c.id, e.target.value)}
+                                                                className="px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 text-xs font-semibold outline-none cursor-pointer"
+                                                            >
+                                                                <option value="Chấm chính" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Chấm chính</option>
+                                                                <option value="Chấm phụ" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Chấm phụ</option>
+                                                                <option value="Giám sát" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Giám sát</option>
+                                                            </select>
+                                                        ) : (
+                                                            <span className="text-slate-400">—</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* 4. Tuyển chọn môn sinh */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Award className="w-4 h-4 text-emerald-500" />
+                                    <span>Danh sách môn sinh tham dự ({selectedStudentIds.length})</span>
+                                </h3>
+                                <span className="text-xs text-slate-500">
+                                    {eligibleStudents.length} đủ điều kiện • {specialStudents.length} đặc cách
+                                </span>
+                            </div>
+
+                            <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden max-h-56 overflow-y-auto text-xs">
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-50 dark:bg-slate-800 font-semibold text-slate-500 sticky top-0">
+                                        <tr>
+                                            <th className="p-2.5 w-10 text-center">Chọn</th>
+                                            <th className="p-2.5">Mã số</th>
+                                            <th className="p-2.5">Họ và tên</th>
+                                            <th className="p-2.5">Sân</th>
+                                            <th className="p-2.5">Cấp hiện tại</th>
+                                            <th className="p-2.5">Tình trạng</th>
+                                            <th className="p-2.5">Dự kiến lên</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        {candidates.map((st) => {
+                                            const isChecked = selectedStudentIds.includes(st.id);
+                                            return (
+                                                <tr key={st.id} className={isChecked ? "bg-blue-50/30 dark:bg-blue-950/20" : ""}>
+                                                    <td className="p-2.5 text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isChecked}
+                                                            onChange={() => toggleCandidate(st.id)}
+                                                            className="rounded text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                    </td>
+                                                    <td className="p-2.5 font-mono text-slate-500">{st.studentCode}</td>
+                                                    <td className="p-2.5 font-bold text-slate-900 dark:text-white">{st.fullName}</td>
+                                                    <td className="p-2.5">{st.dojo === "TACHI" ? "Tachi" : "Hayate"}</td>
+                                                    <td className="p-2.5 text-slate-600 dark:text-slate-400">{st.currentRank}</td>
+                                                    <td className="p-2.5">
+                                                        {st.isEligible ? (
+                                                            <span className="text-emerald-600 font-bold">Đủ chuẩn</span>
+                                                        ) : (
+                                                            <span className="text-amber-600 font-semibold">Chưa đủ</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-2.5">
+                                                        <select
+                                                            value={customRanks[st.id] || st.suggestedNextRank}
+                                                            onChange={(e) => updateCustomRank(st.id, e.target.value)}
+                                                            className="px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 text-xs font-semibold outline-none cursor-pointer"
+                                                        >
+                                                            {AVAILABLE_BELTS.map((b) => (
+                                                                <option key={b} value={b} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+                                                                    {b}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {specialStudents.length > 0 && (
+                                <div className="p-3 bg-amber-50/80 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800 space-y-2 text-xs">
+                                    <div className="flex items-center space-x-1.5 font-bold text-amber-900 dark:text-amber-200">
+                                        <AlertCircle className="w-4 h-4 text-amber-600" />
+                                        <span>Lý do đặc cách của HLV Trưởng cho {specialStudents.length} môn sinh:</span>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={globalSpecialReason}
+                                        onChange={(e) => setGlobalSpecialReason(e.target.value)}
+                                        placeholder="VD: Kỹ thuật tốt, tư chất vững, hoàn thành bài kiểm tra sớm..."
+                                        className="w-full px-3 py-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                            <button
+                                type="button"
+                                onClick={() => setIsOpen(false)}
+                                className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 rounded-xl transition-colors cursor-pointer"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isPending}
+                                onClick={handleUpdate}
+                                className="inline-flex items-center space-x-2 px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
+                            >
+                                {isPending ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Edit3 className="w-4 h-4" />
+                                )}
+                                <span>{isPending ? "Đang lưu thay đổi..." : "Cập nhật kỳ thi"}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}

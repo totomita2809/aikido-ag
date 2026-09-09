@@ -1,0 +1,247 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                 String  @id @default(cuid())
+  name               String?
+  email              String? @unique
+  username           String? @unique
+  passwordHash       String?
+  mustChangePassword Boolean @default(false)
+  role               String  @default("STUDENT")
+  isApproved         Boolean @default(false)
+  image              String?
+
+  studentId          String?   @unique
+  student            Student?  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+
+  accounts           Account[]
+  sessions           Session[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Student {
+  id                 String    @id @default(cuid())
+  studentCode        String    @unique
+  fullName           String
+  currentRank        String
+  dojo               String
+  email              String?
+  healthNote         String?
+  dateOfBirth        DateTime?
+  gender             String?
+  phone              String?
+  parentPhone        String?  // Thêm số điện thoại phụ huynh
+  address            String?
+  avatar             String?
+  pendingAvatar      String?
+  avatarStatus       String    @default("NONE") // NONE, PENDING, APPROVED, REJECTED
+  status             String    @default("ACTIVE") // ACTIVE, PAUSED, INACTIVE
+  joinDate           DateTime? @default(now())
+
+  // 1. Chức vụ trong võ đường
+  title              String    @default("MEMBER") 
+  // Giá trị: "MEMBER" (Môn sinh), "FUKU_SHIDOSHA" (Lớp phó), "SHIDOSHA" (Lớp trưởng), "SHIDOIN" (HLV)
+
+  // 2. Trạng thái phê duyệt khi thêm mới
+  approvalStatus     String    @default("APPROVED") 
+  // Giá trị: "APPROVED" (Đã duyệt), "PENDING_CREATION" (HLV vừa thêm, chờ duyệt), "REJECTED" (Từ chối)
+  creatorName        String?   // Họ tên HLV tạo
+  creatorCode        String?   // Mã HLV tạo
+  rejectReason       String?   // Lý do từ chối (nếu có)
+
+  // Điểm thưởng bảo lưu sang kỳ thi sau (dưới đai đen)
+  accumulatedBonusScore Float   @default(0) // Điểm thưởng tích lũy còn dư từ các kỳ trước
+  bonusScoreNote        String?             // Ghi chú chi tiết nguồn gốc điểm dư (VD: Dư 0.5đ từ Kỳ thi Q3/2026)
+
+  // Liên kết bảng phân quyền nếu là HLV (Shidoin)
+  coachPermission    CoachPermission?
+
+  // Lịch sử sửa thông tin chờ HLV Trưởng duyệt
+  pendingChanges     PendingStudentChange[]
+
+  // Các quan hệ đối ứng bắt buộc với User, TuitionFee, Attendance, RankHistory, ExamCandidate
+  user               User?
+  tuitionFees        TuitionFee[]
+  attendances        Attendance[]
+  rankHistories      RankHistory[]
+  examCandidates     ExamCandidate[]
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+// Bảng phân quyền thao tác chi tiết dành riêng cho HLV
+model CoachPermission {
+  id               String   @id @default(cuid())
+  studentId        String   @unique
+  student          Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Thêm mới môn sinh: EDIT (Chỉnh sửa) hoặc VIEW (Chỉ xem)
+  canCreateStudent String   @default("VIEW") 
+
+  // Quyền sửa từng trường dữ liệu: "EDIT" hoặc "VIEW"
+  canEditFullName  String   @default("VIEW")
+  canEditRank      String   @default("VIEW")
+  canEditDojo      String   @default("VIEW")
+  canEditDob       String   @default("VIEW")
+  canEditGender    String   @default("VIEW")
+  canEditPhone     String   @default("VIEW")
+  canEditAddress   String   @default("VIEW")
+  canEditHealth    String   @default("VIEW")
+  canEditStatus    String   @default("VIEW")
+  
+  updatedAt        DateTime @updatedAt
+}
+
+// Bảng tạm lưu các thông tin mà HLV đã sửa, chờ HLV Trưởng ấn duyệt mới ghi đè vào Student
+model PendingStudentChange {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  coachId      String?
+  coachName    String   // Tên HLV thực hiện sửa
+  coachCode    String?
+
+  changedData  String   // Dữ liệu JSON chứa các trường đã sửa
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectReason String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+model RankHistory {
+  id            String   @id @default(cuid())
+  studentId     String
+  rank          String
+  examDate      DateTime
+  examiner      String?
+  certificateNo String?
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique // Ví dụ: "logo_folder", "app_logo"
+  value     String // Đường dẫn ảnh hoặc thư mục: "/logo/aikido-ag.png"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TuitionFee {
+  id            String    @id @default(cuid())
+  studentId     String
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  month         Int // Tháng thu (1 - 12)
+  year          Int // Năm thu (VD: 2026)
+  amount        Float     @default(0) // Số tiền
+  isPaid        Boolean   @default(false) // Trạng thái đã nộp
+  paidAt        DateTime? // Ngày nộp thực tế
+  paymentMethod String? // Tiền mặt / Chuyển khoản
+  receiptUrl    String? // Lưu ảnh biên lai chuyển khoản
+  note          String? // Ghi chú
+  createdAt     DateTime  @default(now())
+
+  @@unique([studentId, month, year])
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date // Lưu ngày tập (bỏ phần giờ phút)
+  status    String   @default("PRESENT") // "PRESENT" (Có mặt) hoặc "ABSENT" (Vắng)
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, date])
+}
+
+// ================= BỔ SUNG MODEL KỲ THI THĂNG ĐAI =================
+
+model ExamSession {
+  id               String          @id @default(cuid())
+  title            String          // Tên kỳ thi (VD: Kỳ thi thăng cấp đai Q3/2026)
+  examDate         DateTime        // Ngày tổ chức thi
+  dojo             String          // Sân thi: ALL | HAYATE | TACHI
+  notes            String?         // Ghi chú kỳ thi
+  headCoachPresent Boolean         @default(true) // HLV Trưởng có tham gia hay không
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  examiners        ExamExaminer[]
+  candidates       ExamCandidate[]
+}
+
+model ExamExaminer {
+  id            String      @id @default(cuid())
+  examSessionId String
+  examSession   ExamSession @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
+  fullName      String      // Họ tên HLV chấm thi
+  rank          String      // Cấp đai
+  role          String      // VAI TRÒ CHẤM THI: Chấm chính | Chấm phụ | Giám sát
+  order         Int         @default(0) // Thứ tự hiển thị (HLV Trưởng luôn = 0)
+}
+
+model ExamCandidate {
+  id             String      @id @default(cuid())
+  examSessionId  String
+  examSession    ExamSession @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
+  studentId      String
+  student        Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  targetRank     String      // Cấp đai dự kiến lên
+  isSpecial      Boolean     @default(false) // Diện đặc cách hay đủ điều kiện
+  specialReason  String?     // Lý do đặc cách
+
+  // Các trường phục vụ chấm điểm, tích lũy điểm dư và phong đai:
+  ukeCount       Int         @default(0)         // Số lần làm Uke (+0.5đ/lần)
+  usedBonusScore Float       @default(0)         // Điểm tích lũy từ kỳ trước được đem ra dùng ở kỳ này
+  overflowScore  Float       @default(0)         // Điểm dư khi vượt trần 10 sẽ được bảo lưu sang kỳ sau
+  judgeScores    Json?                           // Mảng JSON lưu điểm từng giám khảo: [{ examinerId, examinerName, score }]
+  finalScore     Float?                          // Điểm tổng kết sau khi tính trung bình, cộng Uke và làm tròn
+  resultStatus   String      @default("PENDING") // PENDING (Chưa chấm), SUBMITTED (HLV đã lưu), APPROVED (HLV Trưởng đã chốt)
+  titleHonor     String?                         // Danh hiệu: THỦ KHOA, Á KHOA, QUÝ KHOA hoặc null
+  notes          String?                         // Nhận xét kỹ thuật, đòn thế
+
+  promotedRank   String?                         // Cấp đai thực tế do HLV Trưởng quyết định phong (tối đa Nâu 3)
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now()) @updatedAt
+}
