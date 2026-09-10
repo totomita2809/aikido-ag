@@ -133,6 +133,7 @@ export function checkPromotionEligibility(
 ) {
     const normalized = normalizeRankName(currentRank);
 
+    // Chặn nếu đã đạt đai đen
     if (normalized.includes("Đai đen")) {
         return {
             isEligible: false,
@@ -143,6 +144,20 @@ export function checkPromotionEligibility(
             attendedSessions,
             requiredSessions: 0,
             isMaxRank: true,
+        };
+    }
+
+    // Lọc bỏ gợi ý thăng đai nếu môn sinh đang mang cấp đai Nâu 3
+    if (normalized === "Đai nâu 3 vạch") {
+        return {
+            isEligible: false,
+            nextRank: "Xét duyệt qua kỳ thi đai đen",
+            progressPercent: 100,
+            daysActive: 0,
+            requiredDays: 0,
+            attendedSessions,
+            requiredSessions: 0,
+            isMaxRank: false,
         };
     }
 

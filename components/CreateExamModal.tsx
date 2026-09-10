@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Award, FileText, Plus, X, Users, AlertCircle, Loader2 } from "lucide-react";
 import { generateExamDocx } from "@/lib/docxExport";
 import { createExamSession } from "@/app/actions/exam";
+import { AIKIDO_RANKS, DOJO_CONTACT_INFO } from "@/lib/constants";
 
 interface CoachItem {
     id: string;
@@ -27,14 +28,8 @@ interface Props {
     candidates: CandidateItem[];
 }
 
-const AVAILABLE_BELTS: readonly string[] = [
-    "Đai xanh 1 vạch",
-    "Đai xanh 2 vạch",
-    "Đai xanh 3 vạch",
-    "Đai nâu 1 vạch",
-    "Đai nâu 2 vạch",
-    "Đai nâu 3 vạch",
-];
+// Lấy danh sách cấp đai từ "Đai nâu 1 vạch" trở lên từ AIKIDO_RANKS chung
+const AVAILABLE_BELTS = AIKIDO_RANKS.slice(4);
 
 export default function CreateExamModal({ coaches, candidates }: Props) {
     const [isOpen, setIsOpen] = useState(false);
@@ -52,20 +47,26 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
     // 3. Ban chấm thi
     const [selectedExaminers, setSelectedExaminers] = useState<Record<string, { role: string; rank: string; fullName: string }>>({});
 
-    // 4. Chọn môn sinh tham gia thi
+    // State quản lý việc thêm môn sinh tự do vào ban chấm thi (lọc từ đai Nâu 1 trở lên)
+    const [showAddExaminerModal, setShowAddExaminerModal] = useState(false);
+    const [examinerSearchKeyword, setExaminerSearchKeyword] = useState("");
+
+    // 4. Chọn môn sinh tham gia thi (Lọc bỏ các môn sinh đang ở cấp đai "Đai nâu 3 vạch" nếu họ đã đạt mức tối đa xét đai thường)
+    const filteredCandidates = candidates.filter((c) => c.currentRank !== "Đai nâu 3 vạch");
+
     const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
     const [customRanks, setCustomRanks] = useState<Record<string, string>>({});
     const [globalSpecialReason, setGlobalSpecialReason] = useState("");
 
-    const toggleExaminer = (coach: CoachItem) => {
+    const toggleExaminer = (coachId: string, fullName: string, currentRank: string) => {
         setSelectedExaminers((prev) => {
             const next = { ...prev };
-            if (next[coach.id]) {
-                delete next[coach.id];
+            if (next[coachId]) {
+                delete next[coachId];
             } else {
-                next[coach.id] = {
-                    fullName: coach.fullName,
-                    rank: coach.currentRank,
+                next[coachId] = {
+                    fullName,
+                    rank: currentRank,
                     role: "Chấm phụ",
                 };
             }
@@ -95,9 +96,19 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
     };
 
     // Phân loại thí sinh đã chọn
-    const selectedStudents = candidates.filter((c) => selectedStudentIds.includes(c.id));
+    const selectedStudents = filteredCandidates.filter((c) => selectedStudentIds.includes(c.id));
     const eligibleStudents = selectedStudents.filter((c) => c.isEligible);
     const specialStudents = selectedStudents.filter((c) => !c.isEligible);
+
+    // Lọc danh sách HLV/môn sinh có cấp đai từ "Đai nâu 1 vạch" trở lên để thêm vào ban chấm thi
+    const brownAndBlackBeltIndex = AIKIDO_RANKS.indexOf("Đai nâu 1 vạch" as (typeof AIKIDO_RANKS)[number]);
+    const eligibleExaminerCandidates = candidates.filter((st) => {
+        const rankIdx = AIKIDO_RANKS.indexOf(st.currentRank as (typeof AIKIDO_RANKS)[number]);
+        // Bao gồm cả các HLV truyền vào hoặc môn sinh có đai từ nâu 1 trở lên
+        const isQualifiedRank = rankIdx !== -1 && rankIdx >= brownAndBlackBeltIndex;
+        const matchesKeyword = st.fullName.toLowerCase().includes(examinerSearchKeyword.toLowerCase()) || st.studentCode.toLowerCase().includes(examinerSearchKeyword.toLowerCase());
+        return isQualifiedRank && matchesKeyword;
+    });
 
     // Xuất file Word & Lưu Database
     const handleExportAndSave = () => {
@@ -111,8 +122,8 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
         if (headCoachPresent) {
             examinerList.push({
                 order: 0,
-                fullName: "Nguyễn Trần Anh Vũ",
-                rank: "Đai đen (Sandan - 3 Đẳng)",
+                fullName: DOJO_CONTACT_INFO.headCoach,
+                rank: DOJO_CONTACT_INFO.coachRank,
                 role: "Chấm chính",
             });
         }
@@ -218,7 +229,7 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                     HLV Trưởng có tham gia chấm kỳ thi này không?
                                 </span>
                                 <span className="text-xs text-amber-700 dark:text-amber-400">
-                                    Nếu chọn Có, Thầy Nguyễn Trần Anh Vũ sẽ đứng đầu Ban chấm thi với vai trò Chấm chính.
+                                    Nếu chọn Có, Thầy {DOJO_CONTACT_INFO.headCoach} sẽ đứng đầu Ban chấm thi với vai trò Chấm chính.
                                 </span>
                             </div>
                             <div className="flex items-center space-x-4 shrink-0">
@@ -282,19 +293,29 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                             </div>
                         </div>
 
-                        {/* 3. Ban chấm thi */}
+                        {/* 3. Ban chấm thi & Nút Thêm môn sinh (từ đai Nâu 1 trở lên) */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Users className="w-4 h-4 text-blue-500" />
-                                <span>Thành phần Ban chấm thi</span>
-                            </h3>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-blue-500" />
+                                    <span>Thành phần Ban chấm thi</span>
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddExaminerModal(true)}
+                                    className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Thêm môn sinh (Nâu 1+) vào ban chấm thi</span>
+                                </button>
+                            </div>
 
                             <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
                                 <table className="w-full text-left">
                                     <thead className="bg-slate-50 dark:bg-slate-800 font-semibold text-slate-500">
                                         <tr>
-                                            <th className="p-2.5 w-12 text-center">Chọn</th>
-                                            <th className="p-2.5">Họ và tên HLV</th>
+                                            <th className="p-2.5 w-12 text-center">Trạng thái</th>
+                                            <th className="p-2.5">Họ và tên</th>
                                             <th className="p-2.5">Cấp đai</th>
                                             <th className="p-2.5">VAI TRÒ CHẤM THI</th>
                                         </tr>
@@ -304,10 +325,10 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                             <tr className="bg-amber-50/40 dark:bg-amber-950/20 font-semibold">
                                                 <td className="p-2.5 text-center text-amber-600">★</td>
                                                 <td className="p-2.5 text-slate-900 dark:text-white">
-                                                    Nguyễn Trần Anh Vũ (HLV Trưởng)
+                                                    {DOJO_CONTACT_INFO.headCoach} (HLV Trưởng)
                                                 </td>
                                                 <td className="p-2.5 text-amber-700 dark:text-amber-400">
-                                                    Đai đen (Sandan - 3 Đẳng)
+                                                    {DOJO_CONTACT_INFO.coachRank}
                                                 </td>
                                                 <td className="p-2.5 font-bold text-red-600">Chấm chính</td>
                                             </tr>
@@ -320,7 +341,7 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                                         <input
                                                             type="checkbox"
                                                             checked={isSelected}
-                                                            onChange={() => toggleExaminer(c)}
+                                                            onChange={() => toggleExaminer(c.id, c.fullName, c.currentRank)}
                                                             className="rounded text-red-600 focus:ring-red-500"
                                                         />
                                                     </td>
@@ -346,12 +367,45 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                                 </tr>
                                             );
                                         })}
+                                        {/* Hiển thị các HLV/môn sinh bổ sung ngoài danh sách HLV mặc định */}
+                                        {Object.entries(selectedExaminers).map(([id, ex]) => {
+                                            if (!coaches.some((c) => c.id === id)) {
+                                                return (
+                                                    <tr key={id} className="bg-blue-50/30 dark:bg-blue-950/20">
+                                                        <td className="p-2.5 text-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={true}
+                                                                onChange={() => toggleExaminer(id, ex.fullName, ex.rank)}
+                                                                className="rounded text-red-600 focus:ring-red-500"
+                                                            />
+                                                        </td>
+                                                        <td className="p-2.5 font-medium text-slate-800 dark:text-slate-200">
+                                                            {ex.fullName} <span className="text-[10px] text-blue-600 bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 rounded ml-1">Bổ sung</span>
+                                                        </td>
+                                                        <td className="p-2.5 text-slate-500">{ex.rank}</td>
+                                                        <td className="p-2.5">
+                                                            <select
+                                                                value={ex.role}
+                                                                onChange={(e) => updateExaminerRole(id, e.target.value)}
+                                                                className="px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-red-500 text-xs font-semibold outline-none cursor-pointer"
+                                                            >
+                                                                <option value="Chấm chính" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Chấm chính</option>
+                                                                <option value="Chấm phụ" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Chấm phụ</option>
+                                                                <option value="Giám sát" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Giám sát</option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+                                            return null;
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        {/* 4. Tuyển chọn môn sinh thi */}
+                        {/* 4. Tuyển chọn môn sinh thi (Đã lọc bỏ Đai nâu 3 vạch) */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -378,7 +432,7 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {candidates.map((st) => {
+                                        {filteredCandidates.map((st) => {
                                             const isChecked = selectedStudentIds.includes(st.id);
                                             return (
                                                 <tr key={st.id} className={isChecked ? "bg-red-50/30 dark:bg-red-950/20" : ""}>
@@ -460,6 +514,71 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                     <FileText className="w-4 h-4" />
                                 )}
                                 <span>{isPending ? "Đang xử lý..." : "Lưu & Xuất phiếu chấm thi Word"}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal phụ chọn môn sinh từ đai Nâu 1 trở lên vào hội đồng chấm thi */}
+            {showAddExaminerModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                                Chọn môn sinh (Cấp đai Đai nâu 1 vạch trở lên) làm giám khảo phụ
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowAddExaminerModal(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên hoặc mã môn sinh..."
+                                value={examinerSearchKeyword}
+                                onChange={(e) => setExaminerSearchKeyword(e.target.value)}
+                                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            {eligibleExaminerCandidates.length === 0 ? (
+                                <div className="p-4 text-center text-slate-400">Không tìm thấy môn sinh phù hợp (cần đai Nâu 1 trở lên).</div>
+                            ) : (
+                                eligibleExaminerCandidates.map((st) => {
+                                    const isAdded = Boolean(selectedExaminers[st.id]);
+                                    return (
+                                        <div key={st.id} className="p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                            <div>
+                                                <div className="font-bold text-slate-900 dark:text-white">{st.fullName} <span className="font-mono text-slate-400 font-normal">({st.studentCode})</span></div>
+                                                <div className="text-amber-700 dark:text-amber-400 font-medium">{st.currentRank}</div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleExaminer(st.id, st.fullName, st.currentRank)}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${isAdded ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                                            >
+                                                {isAdded ? "Đã thêm (Bỏ)" : "Thêm vào ban chấm"}
+                                            </button>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowAddExaminerModal(false)}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+                            >
+                                Hoàn tất
                             </button>
                         </div>
                     </div>

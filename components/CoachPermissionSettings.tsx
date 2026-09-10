@@ -1,6 +1,7 @@
 "use client";
 
 import { Shield, KeyRound } from "lucide-react";
+import { STUDENT_TITLES } from "@/lib/constants";
 
 interface Props {
     title: string;
@@ -20,6 +21,11 @@ const FIELDS = [
     { key: "canEditAddress", label: "Địa chỉ thường trú" },
     { key: "canEditHealth", label: "Ghi chú sức khỏe & bệnh lý" },
     { key: "canEditStatus", label: "Trạng thái tập luyện" },
+];
+
+const PERMISSION_OPTIONS = [
+    { label: "Chỉnh sửa", value: "EDIT" },
+    { label: "Chỉ xem", value: "VIEW" },
 ];
 
 export default function CoachPermissionSettings({
@@ -45,10 +51,10 @@ export default function CoachPermissionSettings({
                     onChange={(e) => onTitleChange(e.target.value)}
                     className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                    <option value="MEMBER">Môn sinh thông thường</option>
-                    <option value="FUKU_SHIDOSHA">Lớp phó (Fuku Shidosha)</option>
-                    <option value="SHIDOSHA">Lớp trưởng (Shidosha)</option>
-                    <option value="SHIDOIN">Huấn luyện viên (Shidoin)</option>
+                    <option value="MEMBER">{STUDENT_TITLES.MEMBER}</option>
+                    <option value="FUKU_SHIDOSHA">{STUDENT_TITLES.FUKU_SHIDOSHA}</option>
+                    <option value="SHIDOSHA">{STUDENT_TITLES.SHIDOSHA}</option>
+                    <option value="SHIDOIN">{STUDENT_TITLES.SHIDOIN}</option>
                 </select>
             </div>
 
@@ -68,16 +74,22 @@ export default function CoachPermissionSettings({
                             <span className="font-semibold text-slate-800 dark:text-slate-200">
                                 Thêm mới Môn sinh
                             </span>
-                            <select
-                                name="canCreateStudent"
-                                defaultValue={permissions.canCreateStudent || "VIEW"}
-                                disabled={!isSuperAdmin}
-                                onChange={(e) => onPermissionChange?.("canCreateStudent", e.target.value)}
-                                className="px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
-                            >
-                                <option value="EDIT">Chỉnh sửa</option>
-                                <option value="VIEW">Chỉ xem</option>
-                            </select>
+                            <div className="flex items-center space-x-3">
+                                {PERMISSION_OPTIONS.map((opt) => (
+                                    <label key={opt.value} className="inline-flex items-center space-x-1 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        <input
+                                            type="radio"
+                                            name="canCreateStudent"
+                                            value={opt.value}
+                                            defaultChecked={(permissions.canCreateStudent || "VIEW") === opt.value}
+                                            disabled={!isSuperAdmin}
+                                            onChange={(e) => onPermissionChange?.("canCreateStudent", e.target.value)}
+                                            className="text-red-600 focus:ring-red-500"
+                                        />
+                                        <span>{opt.label}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Mã môn sinh cố định */}
@@ -99,16 +111,22 @@ export default function CoachPermissionSettings({
                                 <span className="font-medium text-slate-700 dark:text-slate-300">
                                     Sửa {item.label}
                                 </span>
-                                <select
-                                    name={item.key}
-                                    defaultValue={permissions[item.key] || "VIEW"}
-                                    disabled={!isSuperAdmin}
-                                    onChange={(e) => onPermissionChange?.(item.key, e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
-                                >
-                                    <option value="EDIT">Chỉnh sửa</option>
-                                    <option value="VIEW">Chỉ xem</option>
-                                </select>
+                                <div className="flex items-center space-x-3">
+                                    {PERMISSION_OPTIONS.map((opt) => (
+                                        <label key={opt.value} className="inline-flex items-center space-x-1 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                                            <input
+                                                type="radio"
+                                                name={item.key}
+                                                value={opt.value}
+                                                defaultChecked={(permissions[item.key] || "VIEW") === opt.value}
+                                                disabled={!isSuperAdmin}
+                                                onChange={(e) => onPermissionChange?.(item.key, e.target.value)}
+                                                className="text-red-600 focus:ring-red-500"
+                                            />
+                                            <span>{opt.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         ))}
                     </div>

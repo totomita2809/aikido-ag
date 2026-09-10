@@ -170,8 +170,9 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                         {/* Mobile Hamburger Button */}
                         <div className="md:hidden flex items-center">
                             <button
+                                type="button"
                                 onClick={() => setIsOpen(!isOpen)}
-                                className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative"
+                                className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative cursor-pointer"
                             >
                                 {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                                 {displayCount > 0 && !isOpen && isSuperAdmin && (
@@ -256,11 +257,13 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                             </>
                         )}
 
-                        <NavbarAuth
-                            session={session}
-                            isMobile={true}
-                            onItemClick={() => setIsOpen(false)}
-                        />
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <NavbarAuth
+                                session={session}
+                                isMobile={true}
+                                onItemClick={() => setIsOpen(false)}
+                            />
+                        </div>
                     </div>
                 )}
             </nav>

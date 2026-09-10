@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCircle2, Clock, CreditCard, MapPin, ExternalLink } from
 import { prisma } from "@/lib/prisma";
 import ExportButton from "@/components/ExportButton";
 import FeeTableRows from "@/components/FeeTableRows";
+import { DOJO_CONFIGS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -57,19 +58,19 @@ export default async function FeesPage({
     });
 
     const getStudentFeeConfig = (dojo?: string) => {
-        if (dojo === "TACHI") {
+        if (dojo === DOJO_CONFIGS.TACHI.key) {
             return {
-                amount: 600000,
+                amount: DOJO_CONFIGS.TACHI.feeAmount,
                 cycleLabel: `Quý ${currentQuarter} (3 tháng)`,
-                dojoName: "Sân Tachi",
-                mapUrl: "https://maps.app.goo.gl/7R1g5EPAysy4KhQm8",
+                dojoName: DOJO_CONFIGS.TACHI.name,
+                mapUrl: DOJO_CONFIGS.TACHI.mapUrl,
             };
         }
         return {
-            amount: 300000,
+            amount: DOJO_CONFIGS.HAYATE.feeAmount,
             cycleLabel: `Tháng ${currentMonth}`,
-            dojoName: "Aikido Hayate",
-            mapUrl: "https://maps.app.goo.gl/ee12w88ToMxg8mYC7",
+            dojoName: DOJO_CONFIGS.HAYATE.name,
+            mapUrl: DOJO_CONFIGS.HAYATE.mapUrl,
         };
     };
 
@@ -138,8 +139,8 @@ export default async function FeesPage({
                                 className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
                             >
                                 <option value="ALL" className="dark:bg-slate-900">Tất cả sân</option>
-                                <option value="HAYATE" className="dark:bg-slate-900">Sân Hayate (300k/tháng)</option>
-                                <option value="TACHI" className="dark:bg-slate-900">Sân Tachi (600k/quý)</option>
+                                <option value={DOJO_CONFIGS.HAYATE.key} className="dark:bg-slate-900">{DOJO_CONFIGS.HAYATE.name} ({(DOJO_CONFIGS.HAYATE.feeAmount / 1000)}k/tháng)</option>
+                                <option value={DOJO_CONFIGS.TACHI.key} className="dark:bg-slate-900">{DOJO_CONFIGS.TACHI.name} ({(DOJO_CONFIGS.TACHI.feeAmount / 1000)}k/quý)</option>
                             </select>
 
                             <select
@@ -184,13 +185,13 @@ export default async function FeesPage({
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 mb-1">
                             Sân 1
                         </span>
-                        <h3 className="font-semibold text-slate-900 dark:text-white">Aikido Hayate</h3>
+                        <h3 className="font-semibold text-slate-900 dark:text-white">{DOJO_CONFIGS.HAYATE.name}</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Học phí: <strong className="text-slate-800 dark:text-slate-200">300.000 đ / tháng</strong>
+                            Học phí: <strong className="text-slate-800 dark:text-slate-200">{DOJO_CONFIGS.HAYATE.feeAmount.toLocaleString("vi-VN")} đ / tháng</strong>
                         </p>
                     </div>
                     <a
-                        href="https://maps.app.goo.gl/ee12w88ToMxg8mYC7"
+                        href={DOJO_CONFIGS.HAYATE.mapUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg"
@@ -206,13 +207,13 @@ export default async function FeesPage({
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 mb-1">
                             Sân 2
                         </span>
-                        <h3 className="font-semibold text-slate-900 dark:text-white">Sân Tachi</h3>
+                        <h3 className="font-semibold text-slate-900 dark:text-white">{DOJO_CONFIGS.TACHI.name}</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Học phí: <strong className="text-slate-800 dark:text-slate-200">600.000 đ / quý (3 tháng)</strong>
+                            Học phí: <strong className="text-slate-800 dark:text-slate-200">{DOJO_CONFIGS.TACHI.feeAmount.toLocaleString("vi-VN")} đ / quý (3 tháng)</strong>
                         </p>
                     </div>
                     <a
-                        href="https://maps.app.goo.gl/7R1g5EPAysy4KhQm8"
+                        href={DOJO_CONFIGS.TACHI.mapUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg"
@@ -276,7 +277,7 @@ export default async function FeesPage({
                         Danh sách môn sinh - Tháng {currentMonth}/{currentYear}
                     </h2>
                     <span className="text-xs text-slate-400">
-                        {selectedDojo === "TACHI" ? "Thu định kỳ theo Quý" : selectedDojo === "HAYATE" ? "Thu định kỳ hàng Tháng" : "Toàn bộ cơ sở"}
+                        {selectedDojo === DOJO_CONFIGS.TACHI.key ? "Thu định kỳ theo Quý" : selectedDojo === DOJO_CONFIGS.HAYATE.key ? "Thu định kỳ hàng Tháng" : "Toàn bộ cơ sở"}
                     </span>
                 </div>
 

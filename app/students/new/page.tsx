@@ -21,6 +21,7 @@ import {
 import { createStudent, getNextStudentCode } from "@/app/actions/student";
 import CoachPermissionSettings from "@/components/CoachPermissionSettings";
 import DatePickerVN from "@/components/common/DatePickerVN";
+import { AIKIDO_RANKS } from "@/lib/constants";
 
 interface TempStudentItem {
     id: string;
@@ -472,25 +473,11 @@ export default function NewStudentPage() {
                                 onChange={(e) => setCurrentRank(e.target.value)}
                                 className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                             >
-                                <optgroup label="1. Nhập môn">
-                                    <option value="Đai trắng">Đai trắng</option>
-                                </optgroup>
-                                <optgroup label="2. Giai đoạn Đai Xanh">
-                                    <option value="Đai xanh 1 vạch">Đai xanh 1 vạch</option>
-                                    <option value="Đai xanh 2 vạch">Đai xanh 2 vạch</option>
-                                    <option value="Đai xanh 3 vạch">Đai xanh 3 vạch</option>
-                                </optgroup>
-                                <optgroup label="3. Giai đoạn Đai Nâu">
-                                    <option value="Đai nâu 1 vạch">Đai nâu 1 vạch</option>
-                                    <option value="Đai nâu 2 vạch">Đai nâu 2 vạch</option>
-                                    <option value="Đai nâu 3 vạch">Đai nâu 3 vạch (Dự bị Shodan)</option>
-                                </optgroup>
-                                <optgroup label="4. Giai đoạn Đai Đen (Hakama)">
-                                    <option value="Đai đen (Shodan)">Đai đen (Shodan - 1 Dan)</option>
-                                    <option value="Đai đen (Nidan)">Đai đen (Nidan - 2 Dan)</option>
-                                    <option value="Đai đen (Sandan)">Đai đen (Sandan - 3 Dan)</option>
-                                    <option value="Đai đen 4 Đẳng (Yondan)">Đai đen (Yondan - 4 Dan)</option>
-                                </optgroup>
+                                {AIKIDO_RANKS.map((rank) => (
+                                    <option key={rank} value={rank}>
+                                        {rank}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 

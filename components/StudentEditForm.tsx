@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Save, HeartPulse } from "lucide-react";
+import { Save, HeartPulse, CheckCircle2 } from "lucide-react";
 import { updateStudent } from "@/app/actions/student";
 import CoachPermissionSettings from "@/components/CoachPermissionSettings";
 import DatePickerVN from "@/components/common/DatePickerVN";
+import { AIKIDO_RANKS, DOJO_CONFIGS } from "@/lib/constants";
 
 interface Props {
     student: {
@@ -27,9 +29,13 @@ interface Props {
 }
 
 export default function StudentEditForm({ student }: Props) {
-    const [selectedDojo, setSelectedDojo] = useState(student.dojo || "HAYATE");
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+
+    const [selectedDojo, setSelectedDojo] = useState(student.dojo || DOJO_CONFIGS.HAYATE.key);
     const [title, setTitle] = useState(student.title || "MEMBER");
     const [isDirty, setIsDirty] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     // Format ngày có sẵn từ DB sang dd/MM/yyyy để truyền vào DatePickerVN
     const formatToVNDate = (d: Date | null | undefined) => {
@@ -47,10 +53,10 @@ export default function StudentEditForm({ student }: Props) {
 
     // Tách phần số cố định phía sau (ví dụ: HYT-002 => 002)
     const match = student.studentCode ? student.studentCode.match(/\d+$/) : null;
-    const suffix = match ? match[0] : student.studentCode.replace(/^(HYT-|TC-)/, "");
+    const suffix = match ? match[0] : student.studentCode.replace(new RegExp(`^(${DOJO_CONFIGS.HAYATE.codePrefix}-|${DOJO_CONFIGS.TACHI.codePrefix}-)`), "");
 
-    // Tiền tố tự động nhảy theo sân đã chọn
-    const currentPrefix = selectedDojo === "TACHI" ? "TC-" : "HYT-";
+    // Tiền tố tự động nhảy theo sân đã chọn sử dụng DOJO_CONFIGS
+    const currentPrefix = selectedDojo === DOJO_CONFIGS.TACHI.key ? `${DOJO_CONFIGS.TACHI.codePrefix}-` : `${DOJO_CONFIGS.HAYATE.codePrefix}-`;
     const computedStudentCode = `${currentPrefix}${suffix}`;
 
     // Cảnh báo khi người dùng reload hoặc tắt trang mà chưa lưu dữ liệu
@@ -76,15 +82,51 @@ export default function StudentEditForm({ student }: Props) {
         setIsDirty(true);
     };
 
-    const updateStudentWithId = updateStudent.bind(null, student.id);
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsDirty(false);
+
+        const formData = new FormData(e.currentTarget);
+
+        startTransition(async () => {
+            try {
+                // Nhận kết quả trả về từ Server Action
+                const result = (await updateStudent(student.id, formData)) as { success?: boolean; error?: string } | undefined;
+
+                // Nếu server trả về lỗi
+                if (result && typeof result === "object" && "success" in result && result.success === false) {
+                    alert(result.error || "Có lỗi xảy ra khi cập nhật!");
+                    return;
+                }
+
+                // Thành công: Hiển thị thông báo riêng và tự động chuyển hướng sau 2 giây
+                setSuccessMessage("Cập nhật hồ sơ môn sinh thành công! Đang chuyển về danh sách...");
+                setTimeout(() => {
+                    router.push("/students");
+                    router.refresh();
+                }, 2000);
+
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : "Lỗi hệ thống";
+                alert(message);
+            }
+        });
+    };
 
     return (
         <form
-            action={updateStudentWithId}
-            onSubmit={() => setIsDirty(false)}
+            onSubmit={handleSubmit}
             onChange={() => setIsDirty(true)}
-            className="mt-6 space-y-5"
+            className="mt-6 space-y-5 relative"
         >
+            {/* Banner thông báo thành công riêng biệt */}
+            {successMessage && (
+                <div className="fixed top-6 right-6 z-50 flex items-center space-x-3 bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-xl border border-emerald-500 transition-all">
+                    <CheckCircle2 className="w-6 h-6 shrink-0 text-emerald-200" />
+                    <span className="text-sm font-semibold">{successMessage}</span>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Chuyển sân tập chính & Tự đổi tiền tố mã */}
                 <div>
@@ -97,8 +139,12 @@ export default function StudentEditForm({ student }: Props) {
                         onChange={handleDojoChange}
                         className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500"
                     >
-                        <option value="HAYATE">Aikido Hayate (Học phí 300k/tháng)</option>
-                        <option value="TACHI">Sân Tachi (Học phí 600k/quý)</option>
+                        <option value={DOJO_CONFIGS.HAYATE.key}>
+                            {DOJO_CONFIGS.HAYATE.name} (Học phí {DOJO_CONFIGS.HAYATE.feeAmount.toLocaleString('vi-VN')}đ/{DOJO_CONFIGS.HAYATE.feeCycle.toLowerCase()})
+                        </option>
+                        <option value={DOJO_CONFIGS.TACHI.key}>
+                            {DOJO_CONFIGS.TACHI.name} (Học phí {DOJO_CONFIGS.TACHI.feeAmount.toLocaleString('vi-VN')}đ/{DOJO_CONFIGS.TACHI.feeCycle.toLowerCase()})
+                        </option>
                     </select>
                 </div>
 
@@ -146,24 +192,11 @@ export default function StudentEditForm({ student }: Props) {
                         defaultValue={student.currentRank}
                         className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                     >
-                        <optgroup label="1. Nhập môn">
-                            <option value="Đai trắng trơn">Đai trắng</option>
-                        </optgroup>
-                        <optgroup label="2. Giai đoạn Đai Xanh">
-                            <option value="Đai xanh 1 vạch">Đai xanh 1 vạch</option>
-                            <option value="Đai xanh 2 vạch">Đai xanh 2 vạch</option>
-                            <option value="Đai xanh 3 vạch">Đai xanh 3 vạch</option>
-                        </optgroup>
-                        <optgroup label="3. Giai đoạn Đai Nâu">
-                            <option value="Đai nâu 1 vạch">Đai nâu 1 vạch</option>
-                            <option value="Đai nâu 2 vạch">Đai nâu 2 vạch</option>
-                            <option value="Đai nâu 3 vạch">Đai nâu 3 vạch (Dự bị Shodan)</option>
-                        </optgroup>
-                        <optgroup label="4. Giai đoạn Đai Đen (Hakama)">
-                            <option value="Đai đen (Shodan)">Đai đen (Shodan - 1 Dan)</option>
-                            <option value="Đai đen (Nidan)">Đai đen (Nidan - 2 Dan)</option>
-                            <option value="Đai đen (Sandan)">Đai đen (Sandan - 3 Dan)</option>
-                        </optgroup>
+                        {AIKIDO_RANKS.map((rank) => (
+                            <option key={rank} value={rank}>
+                                {rank}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
@@ -283,17 +316,18 @@ export default function StudentEditForm({ student }: Props) {
 
             <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <Link
-                    href="/"
+                    href="/students"
                     className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 >
                     Hủy
                 </Link>
                 <button
                     type="submit"
-                    className="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    disabled={isPending || !!successMessage}
+                    className="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
                 >
                     <Save className="w-4 h-4" />
-                    <span>Cập nhật</span>
+                    <span>{isPending ? "Đang lưu..." : successMessage ? "Đã lưu thành công" : "Cập nhật"}</span>
                 </button>
             </div>
         </form>

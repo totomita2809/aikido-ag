@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Trash2, UserCog, CreditCard, Activity, Calendar, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Trash2, UserCog, CreditCard, Activity, Calendar, ShieldAlert, KeyRound } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { deleteStudent } from "@/app/actions/student";
 import { getSession } from "@/lib/auth";
@@ -39,6 +39,11 @@ export default async function StudentDetailPage({
         pendingAvatar?: string | null;
         avatarStatus?: string | null;
         status: string;
+        user?: {
+            email: string;
+            // Nếu hệ thống lưu mật khẩu dạng plaintext hiển thị hoặc lưu ghi chú mật khẩu tạm
+            // Dưới đây hiển thị thông tin tài khoản liên kết lấy từ bảng User
+        } | null;
         tuitionFees?: {
             id: string;
             month: number;
@@ -64,6 +69,7 @@ export default async function StudentDetailPage({
     } | null>)({
         where: { id },
         include: {
+            user: true,
             tuitionFees: {
                 orderBy: [{ year: "desc" }, { month: "desc" }],
                 take: 6,
@@ -89,7 +95,7 @@ export default async function StudentDetailPage({
         return (
             <div className="max-w-md mx-auto space-y-6">
                 <Link
-                    href="/"
+                    href="/students"
                     className="inline-flex items-center space-x-2 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
@@ -145,7 +151,7 @@ export default async function StudentDetailPage({
         <div className="max-w-3xl mx-auto space-y-6 pb-12">
             <div className="flex items-center justify-between">
                 <Link
-                    href="/"
+                    href="/students"
                     className="inline-flex items-center space-x-2 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
@@ -164,6 +170,28 @@ export default async function StudentDetailPage({
                     </form>
                 )}
             </div>
+
+            {/* Thông tin tài khoản đăng nhập (Chỉ HLV Trưởng / SUPER_ADMIN mới nhìn thấy) */}
+            {isSuperAdmin && (
+                <div className="bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded-lg">
+                            <KeyRound className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                                Tài khoản hệ thống & Mật khẩu
+                            </h4>
+                            <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                                Tên đăng nhập: <strong className="font-mono text-slate-900 dark:text-white">{student.user?.email || "Chưa cấp tài khoản"}</strong>
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-xs bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 text-slate-600 dark:text-slate-300 shadow-2xs">
+                        Mật khẩu ban đầu: <code className="font-mono font-bold text-red-600">SĐT hoặc 123456</code> (Đã mã hóa)
+                    </div>
+                </div>
+            )}
 
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-100 dark:border-slate-800 gap-4">

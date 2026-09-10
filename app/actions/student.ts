@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { AIKIDO_RANKS, DOJO_CONFIGS } from "@/lib/constants";
+import bcrypt from "bcryptjs";
 
 // Hàm hỗ trợ parse chuỗi ngày dd/MM/yyyy hoặc yyyy-MM-dd thành Date theo chuẩn UTC+7 (giờ VN)
 function parseVNDate(dateStr: string | null | undefined): Date | null {
@@ -61,7 +63,7 @@ export async function createStudent(formData: FormData) {
     }
 
     const title = (formData.get("title") as string) || "MEMBER";
-    const dojoRaw = (formData.get("dojo") as string) || "HAYATE";
+    const dojoRaw = (formData.get("dojo") as string) || DOJO_CONFIGS.HAYATE.key;
     // Nếu là Shidoin (HLV) thì luôn cố định phụ trách cả 2 sân
     const dojo = title === "SHIDOIN" ? "BOTH" : dojoRaw;
 
@@ -87,16 +89,16 @@ export async function createStudent(formData: FormData) {
 
     const cleanCode = studentCodeRaw.trim().toUpperCase();
 
-    // Tách phần số đuôi sau tiền tố HYT-, TC- hoặc HLV-
+    // Tách phần số đuôi sau tiền tố
     const match = cleanCode.match(/\d+$/);
-    const suffix = match ? match[0] : cleanCode.replace(/^(HYT-|TC-|HLV-)/, "");
+    const suffix = match ? match[0] : cleanCode.replace(new RegExp(`^(${DOJO_CONFIGS.HAYATE.codePrefix}-|${DOJO_CONFIGS.TACHI.codePrefix}-|HLV-)`), "");
 
-    // Cấm trùng số đuôi trên toàn hệ thống (bất kể tiền tố HYT-, TC- hay HLV-)
+    // Cấm trùng số đuôi trên toàn hệ thống
     const existingStudent = await prisma.student.findFirst({
         where: {
             OR: [
-                { studentCode: `HYT-${suffix}` },
-                { studentCode: `TC-${suffix}` },
+                { studentCode: `${DOJO_CONFIGS.HAYATE.codePrefix}-${suffix}` },
+                { studentCode: `${DOJO_CONFIGS.TACHI.codePrefix}-${suffix}` },
                 { studentCode: `HLV-${suffix}` },
                 { studentCode: cleanCode },
             ],
@@ -131,7 +133,7 @@ export async function createStudent(formData: FormData) {
         address: address || null,
         healthNote: healthNote ? healthNote.trim() : null,
         dojo,
-        currentRank: currentRank || "Đai trắng",
+        currentRank: currentRank || AIKIDO_RANKS[0],
         joinDate,
         status: "ACTIVE",
         title,
@@ -143,6 +145,32 @@ export async function createStudent(formData: FormData) {
     const newStudent = await prisma.student.create({
         data: studentData,
     });
+
+    // Tự động cấp tài khoản đăng nhập (User) gắn liền với hồ sơ Môn sinh mới
+    const userEmail = email || `${cleanCode.toLowerCase()}@aikidoangiang.local`;
+    const defaultPassword = phone || "123456";
+    const passwordHash = await bcrypt.hash(defaultPassword, 10);
+
+    const existingUser = await prisma.user.findUnique({
+        where: { email: userEmail },
+    });
+
+    if (!existingUser) {
+        await prisma.user.create({
+            data: {
+                email: userEmail,
+                name: fullName,
+                passwordHash,
+                role: title === "SHIDOIN" ? "COACH" : "STUDENT",
+                studentId: newStudent.id,
+            },
+        });
+    } else {
+        await prisma.user.update({
+            where: { email: userEmail },
+            data: { studentId: newStudent.id },
+        });
+    }
 
     if (title === "SHIDOIN" && isSuperAdmin) {
         await prisma.coachPermission.create({
@@ -174,7 +202,7 @@ export async function updateStudent(id: string, formData: FormData) {
     }
 
     const title = formData.get("title") as string;
-    const dojoRaw = (formData.get("dojo") as string) || "HAYATE";
+    const dojoRaw = (formData.get("dojo") as string) || DOJO_CONFIGS.HAYATE.key;
     const dojo = title === "SHIDOIN" ? "BOTH" : dojoRaw;
 
     const avatarRaw = formData.get("avatar") as string | null;
@@ -196,17 +224,17 @@ export async function updateStudent(id: string, formData: FormData) {
 
     const cleanCode = studentCodeRaw.trim().toUpperCase();
 
-    // Tách phần số đuôi sau tiền tố HYT-, TC- hoặc HLV-
+    // Tách phần số đuôi sau tiền tố
     const match = cleanCode.match(/\d+$/);
-    const suffix = match ? match[0] : cleanCode.replace(/^(HYT-|TC-|HLV-)/, "");
+    const suffix = match ? match[0] : cleanCode.replace(new RegExp(`^(${DOJO_CONFIGS.HAYATE.codePrefix}-|${DOJO_CONFIGS.TACHI.codePrefix}-|HLV-)`), "");
 
     // Kiểm tra trùng số đuôi trên toàn hệ thống (loại trừ chính bản thân môn sinh đang sửa)
     const existingStudent = await prisma.student.findFirst({
         where: {
             id: { not: id },
             OR: [
-                { studentCode: `HYT-${suffix}` },
-                { studentCode: `TC-${suffix}` },
+                { studentCode: `${DOJO_CONFIGS.HAYATE.codePrefix}-${suffix}` },
+                { studentCode: `${DOJO_CONFIGS.TACHI.codePrefix}-${suffix}` },
                 { studentCode: `HLV-${suffix}` },
                 { studentCode: cleanCode },
             ],
@@ -232,7 +260,7 @@ export async function updateStudent(id: string, formData: FormData) {
         address: address || null,
         healthNote: healthNote ? healthNote.trim() : null,
         dojo,
-        currentRank: currentRank || "Đai trắng",
+        currentRank: currentRank || AIKIDO_RANKS[0],
         status: status || "ACTIVE",
     };
 
@@ -263,6 +291,14 @@ export async function updateStudent(id: string, formData: FormData) {
             data: updateData,
         });
 
+        // Đồng thời cập nhật thông tin email tài khoản User nếu có thay đổi
+        if (email) {
+            await prisma.user.updateMany({
+                where: { studentId: id },
+                data: { email, name: fullName },
+            });
+        }
+
         if (title === "SHIDOIN") {
             await prisma.coachPermission.upsert({
                 where: { studentId: id },
@@ -276,7 +312,7 @@ export async function updateStudent(id: string, formData: FormData) {
 
         revalidatePath("/students");
         revalidatePath(`/students/${id}`);
-        redirect(`/students/${id}`);
+        return { success: true };
     }
 
     // Tra cứu mã môn sinh của Coach đang gửi yêu cầu
@@ -302,8 +338,9 @@ export async function updateStudent(id: string, formData: FormData) {
     });
 
     revalidatePath("/admin/approvals");
-    redirect("/students");
+    return { success: true };
 }
+
 
 export async function deleteStudent(id: string) {
     const session = await getSession();
