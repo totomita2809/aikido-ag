@@ -79,7 +79,7 @@ export default function ChangePasswordPage() {
                                     required
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    placeholder="VD: Tho1997@"
+                                    placeholder="VD: Aikidoag2017@"
                                     className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                                 />
                                 <button

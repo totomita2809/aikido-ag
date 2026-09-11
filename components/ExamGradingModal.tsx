@@ -242,7 +242,7 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                 examinerId: j.id,
                 examinerName: j.fullName,
                 role: j.role,
-                score: 8,
+                score: 0,
             }));
 
             const oldBonus = Number(c.student.accumulatedBonusScore) || Number(c.usedBonusScore) || 0;
@@ -271,9 +271,9 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                 ukeCount: c.ukeCount || 0,
                 usedBonusScore: oldBonus,
                 bonusNote: c.student.bonusScoreNote || null,
-                rawScore: 8.0 + oldBonus,
-                finalScore: Math.min(10.0, 8.0 + oldBonus),
-                overflowScore: Math.max(0, roundScore(8.0 + oldBonus - 10.0)),
+                rawScore: 0.0 + oldBonus,
+                finalScore: Math.min(10.0, oldBonus),
+                overflowScore: Math.max(0, roundScore(oldBonus - 10.0)),
                 titleHonor: "",
                 isPassed: true,
                 notes: "",
@@ -708,12 +708,12 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                                 {st.titleHonor && (
                                                     <span
                                                         className={`px-2 py-0.5 rounded-full text-[10px] font-black ${st.titleHonor === "THỦ KHOA"
-                                                                ? "bg-amber-100 text-amber-800 border border-amber-300"
-                                                                : st.titleHonor === "Á KHOA"
-                                                                    ? "bg-slate-200 text-slate-800"
-                                                                    : st.titleHonor === "QUÝ KHOA"
-                                                                        ? "bg-orange-100 text-orange-800"
-                                                                        : "bg-red-100 text-red-700"
+                                                            ? "bg-amber-100 text-amber-800 border border-amber-300"
+                                                            : st.titleHonor === "Á KHOA"
+                                                                ? "bg-slate-200 text-slate-800"
+                                                                : st.titleHonor === "QUÝ KHOA"
+                                                                    ? "bg-orange-100 text-orange-800"
+                                                                    : "bg-red-100 text-red-700"
                                                             }`}
                                                     >
                                                         {st.titleHonor}
@@ -771,7 +771,7 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                         </div>
                                     </div>
 
-                                    {/* CỘT 2: CĂN GIỮA - MỖI GIÁM KHẢO LÀ 1 DÒNG ĐỘC LẬP */}
+                                    {/* CỘT 2: CĂN GIỮA - MỖI GIÁM KHẢO LÀ 1 DÒNG ĐỘC LẬP (HỖ TRỢ RỚT DÒNG TÊN TRÊN MOBILE) */}
                                     <div className="flex-1 w-full xl:max-w-md xl:px-4">
                                         <div className="flex flex-col space-y-2 w-full">
                                             {st.judgeScores.map((j) => (
@@ -779,11 +779,11 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                                     key={j.examinerId}
                                                     className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/60 flex items-center justify-between gap-3 shadow-2xs"
                                                 >
-                                                    {/* Thông tin Giám khảo bên trái dòng */}
+                                                    {/* Thông tin Giám khảo bên trái dòng (Tên tự động xuống hàng khi hẹp) */}
                                                     <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center space-x-2">
+                                                        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
                                                             <span
-                                                                className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate block"
+                                                                className="text-xs font-bold text-slate-800 dark:text-slate-100 break-words whitespace-normal leading-tight"
                                                                 title={j.examinerName}
                                                             >
                                                                 {j.examinerName}
@@ -815,48 +815,50 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                         </div>
                                     </div>
 
-                                    {/* CỘT 3: CỘT UKE, ĐIỂM THI & Ô GHI CHÚ ĐƯỢC MỞ RỘNG */}
-                                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-700 pt-3 xl:pt-0 xl:pl-4 w-full xl:w-auto">
-                                        {/* Làm Uke */}
-                                        <div className="space-y-1 text-center shrink-0">
-                                            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 block">
-                                                Làm Uke:
-                                            </span>
-                                            <div className="flex items-center space-x-1">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    max="10"
-                                                    disabled={isLocked}
-                                                    value={st.ukeCount}
-                                                    onChange={(e) =>
-                                                        updateUkeCount(st.candidateId, parseInt(e.target.value, 10) || 0)
-                                                    }
-                                                    className="w-12 px-1 py-1 text-center font-bold text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white disabled:opacity-60"
-                                                />
-                                                <span className="text-[10px] font-semibold text-emerald-600">
-                                                    +{st.ukeCount * 0.5}đ
+                                    {/* CỘT 3: CỘT UKE, ĐIỂM THI & Ô GHI CHÚ (TỰ ĐỘNG TÁCH HÀNG RỘNG RÃI TRÊN MOBILE) */}
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-700 pt-3 xl:pt-0 xl:pl-4 w-full xl:w-auto">
+                                        <div className="flex items-center gap-3 shrink-0">
+                                            {/* Làm Uke */}
+                                            <div className="space-y-1 text-center shrink-0">
+                                                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 block">
+                                                    Làm Uke:
                                                 </span>
+                                                <div className="flex items-center space-x-1">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="10"
+                                                        disabled={isLocked}
+                                                        value={st.ukeCount}
+                                                        onChange={(e) =>
+                                                            updateUkeCount(st.candidateId, parseInt(e.target.value, 10) || 0)
+                                                        }
+                                                        className="w-12 px-1 py-1 text-center font-bold text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white disabled:opacity-60"
+                                                    />
+                                                    <span className="text-[10px] font-semibold text-emerald-600">
+                                                        +{st.ukeCount * 0.5}đ
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Điểm thi */}
+                                            <div className="text-center px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 min-w-[75px] shrink-0">
+                                                <span className="text-[10px] font-bold text-red-600 uppercase block">
+                                                    Điểm thi
+                                                </span>
+                                                <span className="text-base font-black text-red-700 dark:text-red-400">
+                                                    {formatScoreVN(st.finalScore)}
+                                                </span>
+                                                {st.overflowScore > 0 && (
+                                                    <span className="block text-[9px] font-bold text-emerald-600 mt-0.5">
+                                                        (Dư +{st.overflowScore}đ)
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 
-                                        {/* Điểm thi */}
-                                        <div className="text-center px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 min-w-[75px] shrink-0">
-                                            <span className="text-[10px] font-bold text-red-600 uppercase block">
-                                                Điểm thi
-                                            </span>
-                                            <span className="text-base font-black text-red-700 dark:text-red-400">
-                                                {formatScoreVN(st.finalScore)}
-                                            </span>
-                                            {st.overflowScore > 0 && (
-                                                <span className="block text-[9px] font-bold text-emerald-600 mt-0.5">
-                                                    (Dư +{st.overflowScore}đ)
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Ô ghi chú đòn thế được mở rộng */}
-                                        <div className="flex-1 sm:flex-initial w-full xl:w-60">
+                                        {/* Ô ghi chú đòn thế: Trải rộng 100% bề ngang trên mobile */}
+                                        <div className="flex-1 w-full xl:w-60 min-w-0">
                                             <input
                                                 type="text"
                                                 disabled={isLocked}

@@ -81,7 +81,6 @@ export default function StudentEditForm({ student }: Props) {
         setTitle(newTitle);
         setIsDirty(true);
     };
-
     const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsDirty(false);
@@ -99,11 +98,10 @@ export default function StudentEditForm({ student }: Props) {
                     return;
                 }
 
-                // Thành công: Hiển thị thông báo riêng và tự động chuyển hướng sau 2 giây
-                setSuccessMessage("Cập nhật hồ sơ môn sinh thành công! Đang chuyển về danh sách...");
+                // Thành công: Hiển thị thông báo riêng và tự động chuyển hướng sau 2 giây tới đúng dòng môn sinh
+                setSuccessMessage("Cập nhật hồ sơ môn sinh thành công! Đang quay lại danh sách...");
                 setTimeout(() => {
-                    router.push("/students");
-                    router.refresh();
+                    router.push(`/students#student-${student.id}`);
                 }, 2000);
 
             } catch (error: unknown) {

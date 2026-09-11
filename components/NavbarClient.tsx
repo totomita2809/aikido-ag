@@ -50,7 +50,7 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                     prevCountRef.current = newCount;
                     router.refresh(); // Tự động làm tươi dữ liệu
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 console.error("Lỗi đồng bộ số tác vụ chờ duyệt:", err);
             }
         };
@@ -111,27 +111,31 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                             {/* Chỉ hiển thị các chức năng khi đã đăng nhập */}
                             {session && (
                                 <>
+                                    <Link
+                                        href="/students"
+                                        className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
+                                    >
+                                        Danh sách môn sinh
+                                    </Link>
+
+                                    {/* Điểm danh và Học phí chỉ hiển thị cho HLV/Admin */}
                                     {!isStudent && (
-                                        <Link
-                                            href="/students"
-                                            className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
-                                        >
-                                            Danh sách môn sinh
-                                        </Link>
+                                        <>
+                                            <Link
+                                                href="/attendance"
+                                                className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
+                                            >
+                                                Điểm danh
+                                            </Link>
+                                            <Link
+                                                href="/fees"
+                                                className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
+                                            >
+                                                Học phí
+                                            </Link>
+                                        </>
                                     )}
 
-                                    <Link
-                                        href="/attendance"
-                                        className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
-                                    >
-                                        Điểm danh
-                                    </Link>
-                                    <Link
-                                        href="/fees"
-                                        className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
-                                    >
-                                        Học phí
-                                    </Link>
                                     <Link
                                         href="/promotions"
                                         className="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
@@ -185,7 +189,7 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
 
                 {/* Mobile Menu Dropdown */}
                 {isOpen && (
-                    <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-4 space-y-2">
+                    <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-4 space-y-2 relative z-50 pointer-events-auto">
                         {/* Mobile Trang chủ: Bấm vào chạy hiệu ứng splash */}
                         <Link
                             href="/"
@@ -198,30 +202,33 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                         {/* Chỉ hiển thị các chức năng khi đã đăng nhập */}
                         {session && (
                             <>
+                                <Link
+                                    href="/students"
+                                    onClick={() => setIsOpen(false)}
+                                    className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-600"
+                                >
+                                    Danh sách môn sinh
+                                </Link>
+
                                 {!isStudent && (
-                                    <Link
-                                        href="/students"
-                                        onClick={() => setIsOpen(false)}
-                                        className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-600"
-                                    >
-                                        Danh sách môn sinh
-                                    </Link>
+                                    <>
+                                        <Link
+                                            href="/attendance"
+                                            onClick={() => setIsOpen(false)}
+                                            className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-600"
+                                        >
+                                            Điểm danh
+                                        </Link>
+                                        <Link
+                                            href="/fees"
+                                            onClick={() => setIsOpen(false)}
+                                            className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-600"
+                                        >
+                                            Học phí
+                                        </Link>
+                                    </>
                                 )}
 
-                                <Link
-                                    href="/attendance"
-                                    onClick={() => setIsOpen(false)}
-                                    className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-600"
-                                >
-                                    Điểm danh
-                                </Link>
-                                <Link
-                                    href="/fees"
-                                    onClick={() => setIsOpen(false)}
-                                    className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-600"
-                                >
-                                    Học phí
-                                </Link>
                                 <Link
                                     href="/promotions"
                                     onClick={() => setIsOpen(false)}
@@ -234,7 +241,7 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                                     <Link
                                         href="/students/me"
                                         onClick={() => setIsOpen(false)}
-                                        className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-red-600"
+                                        className="block px-3.5 py-2.5 rounded-lg text-base font-bold text-red-600 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 transition-colors"
                                     >
                                         Hồ sơ của tôi
                                     </Link>
@@ -257,11 +264,14 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                             </>
                         )}
 
-                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 relative z-50 pointer-events-auto">
                             <NavbarAuth
                                 session={session}
                                 isMobile={true}
-                                onItemClick={() => setIsOpen(false)}
+                                onItemClick={() => {
+                                    // Hoãn đóng menu để không làm gián đoạn tiến trình gọi logout trên mobile
+                                    setTimeout(() => setIsOpen(false), 200);
+                                }}
                             />
                         </div>
                     </div>

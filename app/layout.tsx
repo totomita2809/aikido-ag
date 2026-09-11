@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { getSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 
 export const metadata: Metadata = {
     title: "Aikido An Giang - Quản lý môn sinh",
@@ -16,19 +14,6 @@ export default async function RootLayout({
     children: React.ReactNode;
 }) {
     const session = await getSession();
-    const headersList = await headers();
-
-    // Lấy đường dẫn hiện tại từ header của Next.js
-    const pathname = headersList.get("x-invoke-path") || headersList.get("x-url") || "";
-
-    // Nếu tài khoản bắt buộc đổi mật khẩu và chưa ở trang change-password hay login -> ép chuyển hướng
-    if (
-        session?.mustChangePassword &&
-        !pathname.includes("/change-password") &&
-        !pathname.includes("/login")
-    ) {
-        redirect("/change-password");
-    }
 
     return (
         <html lang="vi">

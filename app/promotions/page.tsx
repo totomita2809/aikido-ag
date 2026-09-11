@@ -17,12 +17,17 @@ export default async function PromotionsPage({
     const params = await searchParams;
     const session = await getSession();
     const isSuperAdmin = session?.role === "SUPER_ADMIN";
+    const isStudent = session?.role === "STUDENT";
 
     const selectedDojo = params.dojo || "ALL";
     const filterStatus = params.status || "ALL";
 
     const whereCondition: Record<string, unknown> = { status: "ACTIVE" };
-    if (selectedDojo !== "ALL") {
+
+    // Nếu là Môn sinh, chỉ truy vấn đúng hồ sơ của chính mình để bảo mật
+    if (isStudent && session?.studentId) {
+        whereCondition.id = session.studentId;
+    } else if (selectedDojo !== "ALL") {
         whereCondition.dojo = selectedDojo;
     }
 
@@ -108,6 +113,10 @@ export default async function PromotionsPage({
     });
 
     const filteredStudents = evaluatedStudents.filter((s) => {
+        // Đảm bảo môn sinh chỉ thấy tiến độ của chính mình
+        if (isStudent && session?.studentId) {
+            if (s.id !== session.studentId) return false;
+        }
         if (filterStatus === "ELIGIBLE") return s.evaluation.isEligible;
         if (filterStatus === "IN_PROGRESS") return !s.evaluation.isEligible && !s.evaluation.isMaxRank;
         return true;
@@ -143,14 +152,14 @@ export default async function PromotionsPage({
                     </Link>
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white flex items-center space-x-2">
                         <span>Cấp bậc đai</span>
-                        {eligibleCount > 0 && (
+                        {eligibleCount > 0 && !isStudent && (
                             <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-600 text-white shadow-sm">
                                 {eligibleCount} đủ điều kiện
                             </span>
                         )}
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        Theo dõi số buổi tập và thời gian sinh hoạt trên thảm để đề xuất thi thăng cấp
+                        {isStudent ? "Theo dõi tiến độ tích lũy buổi tập và thời gian thăng cấp đai của bạn" : "Theo dõi số buổi tập và thời gian sinh hoạt trên thảm để đề xuất thi thăng cấp"}
                     </p>
                 </div>
 
@@ -163,50 +172,52 @@ export default async function PromotionsPage({
                         />
                     )}
 
-                    {/* Bộ lọc sân và trạng thái */}
-                    <form
-                        method="GET"
-                        className="flex flex-wrap items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
-                    >
-                        <select
-                            name="dojo"
-                            defaultValue={selectedDojo}
-                            className="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                    {/* Bộ lọc sân và trạng thái (Ẩn với môn sinh vì chỉ thấy hồ sơ của chính mình) */}
+                    {!isStudent && (
+                        <form
+                            method="GET"
+                            className="flex flex-wrap items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
                         >
-                            <option value="ALL" className="dark:bg-slate-900">
-                                Tất cả sân
-                            </option>
-                            <option value="HAYATE" className="dark:bg-slate-900">
-                                Aikido Hayate
-                            </option>
-                            <option value="TACHI" className="dark:bg-slate-900">
-                                Sân Tachi
-                            </option>
-                        </select>
+                            <select
+                                name="dojo"
+                                defaultValue={selectedDojo}
+                                className="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                            >
+                                <option value="ALL" className="dark:bg-slate-900">
+                                    Tất cả sân
+                                </option>
+                                <option value="HAYATE" className="dark:bg-slate-900">
+                                    Aikido Hayate
+                                </option>
+                                <option value="TACHI" className="dark:bg-slate-900">
+                                    Sân Tachi
+                                </option>
+                            </select>
 
-                        <select
-                            name="status"
-                            defaultValue={filterStatus}
-                            className="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
-                        >
-                            <option value="ALL" className="dark:bg-slate-900">
-                                Tất cả tiến độ
-                            </option>
-                            <option value="ELIGIBLE" className="dark:bg-slate-900">
-                                Đủ điều kiện thi ngay
-                            </option>
-                            <option value="IN_PROGRESS" className="dark:bg-slate-900">
-                                Đang tích lũy giờ tập
-                            </option>
-                        </select>
+                            <select
+                                name="status"
+                                defaultValue={filterStatus}
+                                className="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                            >
+                                <option value="ALL" className="dark:bg-slate-900">
+                                    Tất cả tiến độ
+                                </option>
+                                <option value="ELIGIBLE" className="dark:bg-slate-900">
+                                    Đủ điều kiện thi ngay
+                                </option>
+                                <option value="IN_PROGRESS" className="dark:bg-slate-900">
+                                    Đang tích lũy giờ tập
+                                </option>
+                            </select>
 
-                        <button
-                            type="submit"
-                            className="px-3 py-1.5 text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 rounded-lg transition-colors cursor-pointer"
-                        >
-                            Lọc
-                        </button>
-                    </form>
+                            <button
+                                type="submit"
+                                className="px-3 py-1.5 text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 rounded-lg transition-colors cursor-pointer"
+                            >
+                                Lọc
+                            </button>
+                        </form>
+                    )}
                 </div>
             </div>
 
@@ -216,12 +227,13 @@ export default async function PromotionsPage({
                 isSuperAdmin={isSuperAdmin}
                 coaches={coaches}
                 candidates={candidates}
+                currentStudentId={session?.studentId || null}
             />
 
             {/* Danh sách thẻ môn sinh xét duyệt */}
             {filteredStudents.length === 0 ? (
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center text-sm text-slate-400">
-                    Không có môn sinh nào phù hợp với điều kiện lọc hiện tại.
+                    Không có thông tin tiến độ đai phù hợp.
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -232,8 +244,8 @@ export default async function PromotionsPage({
                             <div
                                 key={s.id}
                                 className={`p-5 rounded-2xl border transition-all ${ev.isEligible
-                                    ? "bg-white dark:bg-slate-900 border-emerald-400 dark:border-emerald-600/80 shadow-md ring-1 ring-emerald-400/30"
-                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm"
+                                        ? "bg-white dark:bg-slate-900 border-emerald-400 dark:border-emerald-600/80 shadow-md ring-1 ring-emerald-400/30"
+                                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm"
                                     }`}
                             >
                                 <div className="flex items-start justify-between gap-3">

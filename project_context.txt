@@ -1,5 +1,5 @@
 TỔNG HỢP MÃ NGUỒN DỰ ÁN AIKIDO-AG
-Thời điểm tạo: 19:02:33 10/9/2026
+Thời điểm tạo: 18:56:05 11/9/2026
 
 
 
@@ -1954,16 +1954,100 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.backup.json
   "WorkspaceRootPath": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\students\\new\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\StudentEditForm.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\StudentEditForm.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\exam.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\exam.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\student.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\[id]\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\students\\[id]\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\students\\new\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\api\\sync-data\\route.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\api\\sync-data\\route.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\NavbarClient.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\Navbar.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\Navbar.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\fee.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\fee.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\paymentProof.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\paymentProof.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\export.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\export.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\dashboard.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\dashboard.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\avatar.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\avatar.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\auth.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\auth.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\attendance.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\attendance.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\approval.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\approval.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CreateExamModal.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\CreateExamModal.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\fees\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\fees\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\students\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\docxExport.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\docxExport.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\constants.ts||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\constants.ts||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CoachPermissionSettings.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\CoachPermissionSettings.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\rankRules.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\rankRules.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\edit\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
@@ -1972,10 +2056,6 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.backup.json
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\SplashScreen.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\SplashScreen.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
@@ -1999,102 +2079,11 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.backup.json
         },
         {
           "DockedHeight": 111,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 15,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "page.tsx",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\edit\\page.tsx",
-              "RelativeDocumentMoniker": "app\\students\\me\\edit\\page.tsx",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\edit\\page.tsx",
-              "RelativeToolTip": "app\\students\\me\\edit\\page.tsx",
-              "ViewState": "AgIAADkAAAAAAAAAAAAowFEAAAA4AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T15:15:39.25Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "student.ts",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts",
-              "RelativeDocumentMoniker": "app\\actions\\student.ts",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts",
-              "RelativeToolTip": "app\\actions\\student.ts",
-              "ViewState": "AgIAAIIBAAAAAAAAAAAYwJYBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:35:26.353Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "page.tsx",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx",
-              "RelativeDocumentMoniker": "app\\students\\new\\page.tsx",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx",
-              "RelativeToolTip": "app\\students\\new\\page.tsx",
-              "ViewState": "AgIAAPcCAAAAAAAAAAAYwAsDAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:34:37.628Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "SplashScreen.tsx",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\SplashScreen.tsx",
-              "RelativeDocumentMoniker": "components\\SplashScreen.tsx",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\SplashScreen.tsx",
-              "RelativeToolTip": "components\\SplashScreen.tsx",
-              "ViewState": "AgIAAGAAAAAAAAAAAAAUwIIAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:26:21.207Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "page.tsx",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx",
-              "RelativeDocumentMoniker": "app\\page.tsx",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx",
-              "RelativeToolTip": "app\\page.tsx",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:21:40.995Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "page.tsx",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\page.tsx",
-              "RelativeDocumentMoniker": "app\\students\\me\\page.tsx",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\page.tsx",
-              "RelativeToolTip": "app\\students\\me\\page.tsx",
-              "ViewState": "AgIAAEMAAAAAAAAAAAAUwGUAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:14:33.351Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "NavbarClient.tsx",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx",
-              "RelativeDocumentMoniker": "components\\NavbarClient.tsx",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx",
-              "RelativeToolTip": "components\\NavbarClient.tsx",
-              "ViewState": "AgIAAPgAAAAAAAAAAAAcwAwBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:11:54.638Z",
-              "EditorCaption": ""
             },
             {
               "$type": "Bookmark",
@@ -2111,6 +2100,357 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.backup.json
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "route.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\api\\sync-data\\route.ts",
+              "RelativeDocumentMoniker": "app\\api\\sync-data\\route.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\api\\sync-data\\route.ts",
+              "RelativeToolTip": "app\\api\\sync-data\\route.ts",
+              "ViewState": "AgIAAKAAAAAAAAAAAAAcwKsAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:57:30.031Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Navbar.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\Navbar.tsx",
+              "RelativeDocumentMoniker": "components\\Navbar.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\Navbar.tsx",
+              "RelativeToolTip": "components\\Navbar.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:43:00.792Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "paymentProof.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\paymentProof.ts",
+              "RelativeDocumentMoniker": "app\\actions\\paymentProof.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\paymentProof.ts",
+              "RelativeToolTip": "app\\actions\\paymentProof.ts",
+              "ViewState": "AgIAADAAAAAAAAAAAAAAABAAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:50.384Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "export.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\export.ts",
+              "RelativeDocumentMoniker": "app\\actions\\export.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\export.ts",
+              "RelativeToolTip": "app\\actions\\export.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:45.141Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "dashboard.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\dashboard.ts",
+              "RelativeDocumentMoniker": "app\\actions\\dashboard.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\dashboard.ts",
+              "RelativeToolTip": "app\\actions\\dashboard.ts",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:34.725Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "fee.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\fee.ts",
+              "RelativeDocumentMoniker": "app\\actions\\fee.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\fee.ts",
+              "RelativeToolTip": "app\\actions\\fee.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEcAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:40:40.455Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "exam.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\exam.ts",
+              "RelativeDocumentMoniker": "app\\actions\\exam.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\exam.ts",
+              "RelativeToolTip": "app\\actions\\exam.ts",
+              "ViewState": "AgIAAL8BAAAAAAAAAAAAALcBAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:34:20.006Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "student.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts",
+              "RelativeDocumentMoniker": "app\\actions\\student.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts",
+              "RelativeToolTip": "app\\actions\\student.ts",
+              "ViewState": "AgIAAEoBAAAAAAAAAAAcwFEBAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:35:26.353Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx",
+              "RelativeDocumentMoniker": "app\\students\\new\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx",
+              "RelativeToolTip": "app\\students\\new\\page.tsx",
+              "ViewState": "AgIAADsBAAAAAAAAAAAMwEMBAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:34:37.628Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\[id]\\page.tsx",
+              "RelativeDocumentMoniker": "app\\students\\[id]\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\[id]\\page.tsx",
+              "RelativeToolTip": "app\\students\\[id]\\page.tsx",
+              "ViewState": "AgIAAFkAAAAAAAAAAAAMwGUAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T12:13:02.289Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "StudentEditForm.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\StudentEditForm.tsx",
+              "RelativeDocumentMoniker": "components\\StudentEditForm.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\StudentEditForm.tsx",
+              "RelativeToolTip": "components\\StudentEditForm.tsx",
+              "ViewState": "AgIAADcBAAAAAAAAAAAcwEoBAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:01:56.406Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "avatar.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\avatar.ts",
+              "RelativeDocumentMoniker": "app\\actions\\avatar.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\avatar.ts",
+              "RelativeToolTip": "app\\actions\\avatar.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:33.857Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "auth.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\auth.ts",
+              "RelativeDocumentMoniker": "app\\actions\\auth.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\auth.ts",
+              "RelativeToolTip": "app\\actions\\auth.ts",
+              "ViewState": "AgIAALEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:15.113Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "attendance.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\attendance.ts",
+              "RelativeDocumentMoniker": "app\\actions\\attendance.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\attendance.ts",
+              "RelativeToolTip": "app\\actions\\attendance.ts",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:11.677Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "NavbarClient.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx",
+              "RelativeDocumentMoniker": "components\\NavbarClient.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx",
+              "RelativeToolTip": "components\\NavbarClient.tsx",
+              "ViewState": "AgIAAJ8AAAAAAAAAAAAAALAAAABKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:11:54.638Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "approval.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\approval.ts",
+              "RelativeDocumentMoniker": "app\\actions\\approval.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\approval.ts",
+              "RelativeToolTip": "app\\actions\\approval.ts",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:40:58.701Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\fees\\page.tsx",
+              "RelativeDocumentMoniker": "app\\fees\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\fees\\page.tsx",
+              "RelativeToolTip": "app\\fees\\page.tsx",
+              "ViewState": "AgIAABYBAAAAAAAAAAAcwC0BAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:23:04.619Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\page.tsx",
+              "RelativeDocumentMoniker": "app\\students\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\page.tsx",
+              "RelativeToolTip": "app\\students\\page.tsx",
+              "ViewState": "AgIAABQAAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:14:48.444Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "docxExport.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\docxExport.ts",
+              "RelativeDocumentMoniker": "lib\\docxExport.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\docxExport.ts",
+              "RelativeToolTip": "lib\\docxExport.ts",
+              "ViewState": "AgIAAAoBAAAAAAAAAAAAAIMAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:11:21.387Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "CoachPermissionSettings.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CoachPermissionSettings.tsx",
+              "RelativeDocumentMoniker": "components\\CoachPermissionSettings.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CoachPermissionSettings.tsx",
+              "RelativeToolTip": "components\\CoachPermissionSettings.tsx",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAcwI8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:04:46.481Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "CreateExamModal.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CreateExamModal.tsx",
+              "RelativeDocumentMoniker": "components\\CreateExamModal.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CreateExamModal.tsx",
+              "RelativeToolTip": "components\\CreateExamModal.tsx",
+              "ViewState": "AgIAAOQBAAAAAAAAAAAcwEwCAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T12:39:38.129Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "constants.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\constants.ts",
+              "RelativeDocumentMoniker": "lib\\constants.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\constants.ts",
+              "RelativeToolTip": "lib\\constants.ts",
+              "ViewState": "AgIAAD0AAAAAAAAAAADwv08AAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T12:23:10.979Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "rankRules.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\rankRules.ts",
+              "RelativeDocumentMoniker": "lib\\rankRules.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\rankRules.ts",
+              "RelativeToolTip": "lib\\rankRules.ts",
+              "ViewState": "AgIAAKYAAAAAAAAAAADwv7oAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T12:04:10.58Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\edit\\page.tsx",
+              "RelativeDocumentMoniker": "app\\students\\me\\edit\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\edit\\page.tsx",
+              "RelativeToolTip": "app\\students\\me\\edit\\page.tsx",
+              "ViewState": "AgIAADkAAAAAAAAAAAAowFEAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T15:15:39.25Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "SplashScreen.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\SplashScreen.tsx",
+              "RelativeDocumentMoniker": "components\\SplashScreen.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\SplashScreen.tsx",
+              "RelativeToolTip": "components\\SplashScreen.tsx",
+              "ViewState": "AgIAAGAAAAAAAAAAAAAUwIIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:26:21.207Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx",
+              "RelativeDocumentMoniker": "app\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx",
+              "RelativeToolTip": "app\\page.tsx",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAcwJQAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:21:40.995Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\page.tsx",
+              "RelativeDocumentMoniker": "app\\students\\me\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\page.tsx",
+              "RelativeToolTip": "app\\students\\me\\page.tsx",
+              "ViewState": "AgIAAEMAAAAAAAAAAAAUwGUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:14:33.351Z",
+              "EditorCaption": ""
             }
           ]
         }
@@ -2128,16 +2468,100 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.json
   "WorkspaceRootPath": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\students\\new\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\StudentEditForm.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\StudentEditForm.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\exam.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\exam.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\student.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\[id]\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\students\\[id]\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\students\\new\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\api\\sync-data\\route.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\api\\sync-data\\route.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\NavbarClient.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\Navbar.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\Navbar.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\fee.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\fee.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\paymentProof.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\paymentProof.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\export.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\export.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\dashboard.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\dashboard.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\avatar.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\avatar.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\auth.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\auth.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\attendance.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\attendance.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\approval.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\actions\\approval.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CreateExamModal.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\CreateExamModal.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\fees\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\fees\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\students\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\docxExport.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\docxExport.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\constants.ts||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\constants.ts||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CoachPermissionSettings.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\CoachPermissionSettings.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\rankRules.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\rankRules.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\edit\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
@@ -2146,10 +2570,6 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.json
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\SplashScreen.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:components\\SplashScreen.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
@@ -2173,15 +2593,11 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.json
         },
         {
           "DockedHeight": 111,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 14,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
             },
             {
               "$type": "Bookmark",
@@ -2197,7 +2613,284 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.json
             },
             {
               "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "route.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\api\\sync-data\\route.ts",
+              "RelativeDocumentMoniker": "app\\api\\sync-data\\route.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\api\\sync-data\\route.ts",
+              "RelativeToolTip": "app\\api\\sync-data\\route.ts",
+              "ViewState": "AgIAAKAAAAAAAAAAAAAcwKsAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:57:30.031Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Navbar.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\Navbar.tsx",
+              "RelativeDocumentMoniker": "components\\Navbar.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\Navbar.tsx",
+              "RelativeToolTip": "components\\Navbar.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:43:00.792Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "paymentProof.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\paymentProof.ts",
+              "RelativeDocumentMoniker": "app\\actions\\paymentProof.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\paymentProof.ts",
+              "RelativeToolTip": "app\\actions\\paymentProof.ts",
+              "ViewState": "AgIAADAAAAAAAAAAAAAAABAAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:50.384Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "export.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\export.ts",
+              "RelativeDocumentMoniker": "app\\actions\\export.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\export.ts",
+              "RelativeToolTip": "app\\actions\\export.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:45.141Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "dashboard.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\dashboard.ts",
+              "RelativeDocumentMoniker": "app\\actions\\dashboard.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\dashboard.ts",
+              "RelativeToolTip": "app\\actions\\dashboard.ts",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:34.725Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "fee.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\fee.ts",
+              "RelativeDocumentMoniker": "app\\actions\\fee.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\fee.ts",
+              "RelativeToolTip": "app\\actions\\fee.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEcAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:40:40.455Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "exam.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\exam.ts",
+              "RelativeDocumentMoniker": "app\\actions\\exam.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\exam.ts",
+              "RelativeToolTip": "app\\actions\\exam.ts",
+              "ViewState": "AgIAAL8BAAAAAAAAAAAAALcBAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:34:20.006Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "student.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts",
+              "RelativeDocumentMoniker": "app\\actions\\student.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts",
+              "RelativeToolTip": "app\\actions\\student.ts",
+              "ViewState": "AgIAAEoBAAAAAAAAAAAcwFEBAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:35:26.353Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx",
+              "RelativeDocumentMoniker": "app\\students\\new\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx",
+              "RelativeToolTip": "app\\students\\new\\page.tsx",
+              "ViewState": "AgIAADsBAAAAAAAAAAAMwEMBAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:34:37.628Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 3,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\[id]\\page.tsx",
+              "RelativeDocumentMoniker": "app\\students\\[id]\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\[id]\\page.tsx",
+              "RelativeToolTip": "app\\students\\[id]\\page.tsx",
+              "ViewState": "AgIAAFkAAAAAAAAAAAAMwGUAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T12:13:02.289Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "StudentEditForm.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\StudentEditForm.tsx",
+              "RelativeDocumentMoniker": "components\\StudentEditForm.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\StudentEditForm.tsx",
+              "RelativeToolTip": "components\\StudentEditForm.tsx",
+              "ViewState": "AgIAAEUBAAAAAAAAAAAcwEoBAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:01:56.406Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "avatar.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\avatar.ts",
+              "RelativeDocumentMoniker": "app\\actions\\avatar.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\avatar.ts",
+              "RelativeToolTip": "app\\actions\\avatar.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:33.857Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "auth.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\auth.ts",
+              "RelativeDocumentMoniker": "app\\actions\\auth.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\auth.ts",
+              "RelativeToolTip": "app\\actions\\auth.ts",
+              "ViewState": "AgIAALEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:15.113Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "attendance.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\attendance.ts",
+              "RelativeDocumentMoniker": "app\\actions\\attendance.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\attendance.ts",
+              "RelativeToolTip": "app\\actions\\attendance.ts",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:41:11.677Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "NavbarClient.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx",
+              "RelativeDocumentMoniker": "components\\NavbarClient.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx",
+              "RelativeToolTip": "components\\NavbarClient.tsx",
+              "ViewState": "AgIAAJ8AAAAAAAAAAAAAALAAAABKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-09T14:11:54.638Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "approval.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\approval.ts",
+              "RelativeDocumentMoniker": "app\\actions\\approval.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\approval.ts",
+              "RelativeToolTip": "app\\actions\\approval.ts",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:40:58.701Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\fees\\page.tsx",
+              "RelativeDocumentMoniker": "app\\fees\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\fees\\page.tsx",
+              "RelativeToolTip": "app\\fees\\page.tsx",
+              "ViewState": "AgIAABYBAAAAAAAAAAAcwC0BAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:23:04.619Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\page.tsx",
+              "RelativeDocumentMoniker": "app\\students\\page.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\page.tsx",
+              "RelativeToolTip": "app\\students\\page.tsx",
+              "ViewState": "AgIAABQAAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:14:48.444Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "docxExport.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\docxExport.ts",
+              "RelativeDocumentMoniker": "lib\\docxExport.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\docxExport.ts",
+              "RelativeToolTip": "lib\\docxExport.ts",
+              "ViewState": "AgIAAAoBAAAAAAAAAAAAAIMAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:11:21.387Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "CoachPermissionSettings.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CoachPermissionSettings.tsx",
+              "RelativeDocumentMoniker": "components\\CoachPermissionSettings.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CoachPermissionSettings.tsx",
+              "RelativeToolTip": "components\\CoachPermissionSettings.tsx",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAcwI8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T13:04:46.481Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "CreateExamModal.tsx",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CreateExamModal.tsx",
+              "RelativeDocumentMoniker": "components\\CreateExamModal.tsx",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\CreateExamModal.tsx",
+              "RelativeToolTip": "components\\CreateExamModal.tsx",
+              "ViewState": "AgIAAOQBAAAAAAAAAAAcwEwCAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T12:39:38.129Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "constants.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\constants.ts",
+              "RelativeDocumentMoniker": "lib\\constants.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\constants.ts",
+              "RelativeToolTip": "lib\\constants.ts",
+              "ViewState": "AgIAAD0AAAAAAAAAAADwv08AAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T12:23:10.979Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "rankRules.ts",
+              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\rankRules.ts",
+              "RelativeDocumentMoniker": "lib\\rankRules.ts",
+              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\lib\\rankRules.ts",
+              "RelativeToolTip": "lib\\rankRules.ts",
+              "ViewState": "AgIAAKYAAAAAAAAAAADwv7oAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-09-10T12:04:10.58Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
               "Title": "page.tsx",
               "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\edit\\page.tsx",
               "RelativeDocumentMoniker": "app\\students\\me\\edit\\page.tsx",
@@ -2209,32 +2902,7 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.json
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "student.ts",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts",
-              "RelativeDocumentMoniker": "app\\actions\\student.ts",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\actions\\student.ts",
-              "RelativeToolTip": "app\\actions\\student.ts",
-              "ViewState": "AgIAAIIBAAAAAAAAAAAYwJYBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:35:26.353Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "page.tsx",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx",
-              "RelativeDocumentMoniker": "app\\students\\new\\page.tsx",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\new\\page.tsx",
-              "RelativeToolTip": "app\\students\\new\\page.tsx",
-              "ViewState": "AgIAAAYDAAAAAAAAAAAywAsDAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:34:37.628Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 25,
               "Title": "SplashScreen.tsx",
               "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\SplashScreen.tsx",
               "RelativeDocumentMoniker": "components\\SplashScreen.tsx",
@@ -2246,19 +2914,19 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.json
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 22,
               "Title": "page.tsx",
               "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx",
               "RelativeDocumentMoniker": "app\\page.tsx",
               "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\page.tsx",
               "RelativeToolTip": "app\\page.tsx",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAcwJQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
               "WhenOpened": "2026-09-09T14:21:40.995Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 26,
               "Title": "page.tsx",
               "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\app\\students\\me\\page.tsx",
               "RelativeDocumentMoniker": "app\\students\\me\\page.tsx",
@@ -2267,18 +2935,6 @@ FILE: .vs/aikido-ag.slnx/v18/DocumentLayout.json
               "ViewState": "AgIAAEMAAAAAAAAAAAAUwGUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
               "WhenOpened": "2026-09-09T14:14:33.351Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "NavbarClient.tsx",
-              "DocumentMoniker": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx",
-              "RelativeDocumentMoniker": "components\\NavbarClient.tsx",
-              "ToolTip": "C:\\Users\\ngoct\\source\\repos\\aikido-ag\\components\\NavbarClient.tsx",
-              "RelativeToolTip": "components\\NavbarClient.tsx",
-              "ViewState": "AgIAAPgAAAAAAAAAAAAcwAwBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-09-09T14:11:54.638Z"
             }
           ]
         }
@@ -2303,11 +2959,10 @@ FILE: .vs/VSWorkspaceState.json
   "ExpandedNodes": [
     "",
     "\\app",
+    "\\app\\actions",
     "\\app\\students",
-    "\\app\\students\\new",
     "\\app\\students\\[id]",
     "\\components",
-    "\\lib",
     "\\prisma"
   ],
   "PreviewInSolutionExplorer": false
@@ -3823,6 +4478,8 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { AIKIDO_RANKS, DOJO_CONFIGS } from "@/lib/constants";
+import bcrypt from "bcryptjs";
 
 // Hàm hỗ trợ parse chuỗi ngày dd/MM/yyyy hoặc yyyy-MM-dd thành Date theo chuẩn UTC+7 (giờ VN)
 function parseVNDate(dateStr: string | null | undefined): Date | null {
@@ -3880,7 +4537,7 @@ export async function createStudent(formData: FormData) {
     }
 
     const title = (formData.get("title") as string) || "MEMBER";
-    const dojoRaw = (formData.get("dojo") as string) || "HAYATE";
+    const dojoRaw = (formData.get("dojo") as string) || DOJO_CONFIGS.HAYATE.key;
     // Nếu là Shidoin (HLV) thì luôn cố định phụ trách cả 2 sân
     const dojo = title === "SHIDOIN" ? "BOTH" : dojoRaw;
 
@@ -3906,16 +4563,16 @@ export async function createStudent(formData: FormData) {
 
     const cleanCode = studentCodeRaw.trim().toUpperCase();
 
-    // Tách phần số đuôi sau tiền tố HYT-, TC- hoặc HLV-
+    // Tách phần số đuôi sau tiền tố
     const match = cleanCode.match(/\d+$/);
-    const suffix = match ? match[0] : cleanCode.replace(/^(HYT-|TC-|HLV-)/, "");
+    const suffix = match ? match[0] : cleanCode.replace(new RegExp(`^(${DOJO_CONFIGS.HAYATE.codePrefix}-|${DOJO_CONFIGS.TACHI.codePrefix}-|HLV-)`), "");
 
-    // Cấm trùng số đuôi trên toàn hệ thống (bất kể tiền tố HYT-, TC- hay HLV-)
+    // Cấm trùng số đuôi trên toàn hệ thống
     const existingStudent = await prisma.student.findFirst({
         where: {
             OR: [
-                { studentCode: `HYT-${suffix}` },
-                { studentCode: `TC-${suffix}` },
+                { studentCode: `${DOJO_CONFIGS.HAYATE.codePrefix}-${suffix}` },
+                { studentCode: `${DOJO_CONFIGS.TACHI.codePrefix}-${suffix}` },
                 { studentCode: `HLV-${suffix}` },
                 { studentCode: cleanCode },
             ],
@@ -3950,7 +4607,7 @@ export async function createStudent(formData: FormData) {
         address: address || null,
         healthNote: healthNote ? healthNote.trim() : null,
         dojo,
-        currentRank: currentRank || "Đai trắng",
+        currentRank: currentRank || AIKIDO_RANKS[0],
         joinDate,
         status: "ACTIVE",
         title,
@@ -3962,6 +4619,32 @@ export async function createStudent(formData: FormData) {
     const newStudent = await prisma.student.create({
         data: studentData,
     });
+
+    // Tự động cấp tài khoản đăng nhập (User) gắn liền với hồ sơ Môn sinh mới
+    const userEmail = email || `${cleanCode.toLowerCase()}@aikidoangiang.local`;
+    const defaultPassword = phone || "123456";
+    const passwordHash = await bcrypt.hash(defaultPassword, 10);
+
+    const existingUser = await prisma.user.findUnique({
+        where: { email: userEmail },
+    });
+
+    if (!existingUser) {
+        await prisma.user.create({
+            data: {
+                email: userEmail,
+                name: fullName,
+                passwordHash,
+                role: title === "SHIDOIN" ? "COACH" : "STUDENT",
+                studentId: newStudent.id,
+            },
+        });
+    } else {
+        await prisma.user.update({
+            where: { email: userEmail },
+            data: { studentId: newStudent.id },
+        });
+    }
 
     if (title === "SHIDOIN" && isSuperAdmin) {
         await prisma.coachPermission.create({
@@ -3993,7 +4676,7 @@ export async function updateStudent(id: string, formData: FormData) {
     }
 
     const title = formData.get("title") as string;
-    const dojoRaw = (formData.get("dojo") as string) || "HAYATE";
+    const dojoRaw = (formData.get("dojo") as string) || DOJO_CONFIGS.HAYATE.key;
     const dojo = title === "SHIDOIN" ? "BOTH" : dojoRaw;
 
     const avatarRaw = formData.get("avatar") as string | null;
@@ -4015,17 +4698,17 @@ export async function updateStudent(id: string, formData: FormData) {
 
     const cleanCode = studentCodeRaw.trim().toUpperCase();
 
-    // Tách phần số đuôi sau tiền tố HYT-, TC- hoặc HLV-
+    // Tách phần số đuôi sau tiền tố
     const match = cleanCode.match(/\d+$/);
-    const suffix = match ? match[0] : cleanCode.replace(/^(HYT-|TC-|HLV-)/, "");
+    const suffix = match ? match[0] : cleanCode.replace(new RegExp(`^(${DOJO_CONFIGS.HAYATE.codePrefix}-|${DOJO_CONFIGS.TACHI.codePrefix}-|HLV-)`), "");
 
     // Kiểm tra trùng số đuôi trên toàn hệ thống (loại trừ chính bản thân môn sinh đang sửa)
     const existingStudent = await prisma.student.findFirst({
         where: {
             id: { not: id },
             OR: [
-                { studentCode: `HYT-${suffix}` },
-                { studentCode: `TC-${suffix}` },
+                { studentCode: `${DOJO_CONFIGS.HAYATE.codePrefix}-${suffix}` },
+                { studentCode: `${DOJO_CONFIGS.TACHI.codePrefix}-${suffix}` },
                 { studentCode: `HLV-${suffix}` },
                 { studentCode: cleanCode },
             ],
@@ -4051,7 +4734,7 @@ export async function updateStudent(id: string, formData: FormData) {
         address: address || null,
         healthNote: healthNote ? healthNote.trim() : null,
         dojo,
-        currentRank: currentRank || "Đai trắng",
+        currentRank: currentRank || AIKIDO_RANKS[0],
         status: status || "ACTIVE",
     };
 
@@ -4082,6 +4765,14 @@ export async function updateStudent(id: string, formData: FormData) {
             data: updateData,
         });
 
+        // Đồng thời cập nhật thông tin email tài khoản User nếu có thay đổi
+        if (email) {
+            await prisma.user.updateMany({
+                where: { studentId: id },
+                data: { email, name: fullName },
+            });
+        }
+
         if (title === "SHIDOIN") {
             await prisma.coachPermission.upsert({
                 where: { studentId: id },
@@ -4095,7 +4786,7 @@ export async function updateStudent(id: string, formData: FormData) {
 
         revalidatePath("/students");
         revalidatePath(`/students/${id}`);
-        redirect(`/students/${id}`);
+        return { success: true };
     }
 
     // Tra cứu mã môn sinh của Coach đang gửi yêu cầu
@@ -4121,8 +4812,9 @@ export async function updateStudent(id: string, formData: FormData) {
     });
 
     revalidatePath("/admin/approvals");
-    redirect("/students");
+    return { success: true };
 }
+
 
 export async function deleteStudent(id: string) {
     const session = await getSession();
@@ -4224,6 +4916,7 @@ export async function getStudentSelfProfile() {
 
     return student;
 }
+
 
 ==================================================
 FILE: app/admin/approvals/ApprovalsClient.tsx
@@ -5108,6 +5801,195 @@ export default async function PendingAvatarsPage() {
 }
 
 ==================================================
+FILE: app/api/sync-data/route.ts
+==================================================
+
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+import bcrypt from "bcryptjs";
+import { AIKIDO_RANKS } from "@/lib/constants";
+
+// 1. Hàm chuẩn hóa cấp đai cũ về chuẩn chung
+function normalizeBeltRank(oldRank: string | null): string {
+    if (!oldRank) return AIKIDO_RANKS[0];
+    const clean = oldRank.trim();
+    if ((AIKIDO_RANKS as readonly string[]).includes(clean)) {
+        return clean;
+    }
+
+    const lower = clean.toLowerCase();
+    if (lower.includes("shodan") || lower.includes("1 đẳng") || lower === "đai đen 1" || lower === "đai đen (1 đẳng)" || lower === "đai đen" || lower === "đen") {
+        return "Đai đen (Shodan - 1 Đẳng)";
+    }
+    if (lower.includes("nidan") || lower.includes("2 đẳng") || lower === "đai đen 2" || lower === "đai đen (2 đẳng)") {
+        return "Đai đen (Nidan - 2 Đẳng)";
+    }
+    if (lower.includes("sandan") || lower.includes("3 đẳng")) {
+        return "Đai đen (Sandan - 3 Đẳng)";
+    }
+    if (lower.includes("yondan") || lower.includes("4 đẳng")) {
+        return "Đai đen (Yondan - 4 Đẳng)";
+    }
+    if (lower.includes("godan") || lower.includes("5 đẳng")) {
+        return "Đai đen (Godan - 5 Đẳng)";
+    }
+    if (lower.includes("nâu 3") || lower.includes("dự bị shodan") || lower.includes("chuẩn đen")) {
+        return "Đai nâu 3 vạch";
+    }
+    if (lower.includes("nâu 2")) {
+        return "Đai nâu 2 vạch";
+    }
+    if (lower.includes("nâu 1") || lower.includes("nâu một")) {
+        return "Đai nâu 1 vạch";
+    }
+    if (lower.includes("xanh 3")) {
+        return "Đai xanh 3 vạch";
+    }
+    if (lower.includes("xanh 2")) {
+        return "Đai xanh 2 vạch";
+    }
+    if (lower.includes("xanh 1") || lower.includes("xanh")) {
+        return "Đai xanh 1 vạch";
+    }
+    if (lower.includes("trắng")) {
+        return "Đai trắng";
+    }
+
+    return AIKIDO_RANKS[0];
+}
+
+// 2. Hàm tạo username và password đúng đặc tả: (họ + tên + số đuôi mã), pass = năm sinh
+function generateStudentAccountInfo(fullName: string, studentCode: string, dateOfBirth: Date | null) {
+    const normalizedName = fullName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+
+    const nameParts = normalizedName.split(/\s+/).filter(Boolean);
+
+    let usernamePrefix = "";
+    if (nameParts.length >= 2) {
+        const lastName = nameParts[0];
+        const firstName = nameParts[nameParts.length - 1];
+        usernamePrefix = `${lastName}${firstName}`;
+    } else if (nameParts.length === 1) {
+        usernamePrefix = nameParts[0];
+    } else {
+        usernamePrefix = "user";
+    }
+
+    const matchCodeNum = studentCode.match(/\d+$/);
+    const codeSuffix = matchCodeNum ? matchCodeNum[0] : "001";
+    const username = `${usernamePrefix}${codeSuffix}`;
+
+    let password = "123456";
+    if (dateOfBirth) {
+        password = dateOfBirth.getUTCFullYear().toString();
+    }
+
+    return { username, password };
+}
+
+export async function GET() {
+    const session = await getSession();
+    if (!session || session.role !== "SUPER_ADMIN") {
+        return NextResponse.json({ error: "Unauthorized - Chỉ HLV Trưởng mới có quyền đồng bộ dữ liệu" }, { status: 403 });
+    }
+
+    try {
+        const students = await prisma.student.findMany({
+            include: {
+                user: true,
+                rankHistories: true,
+            },
+        });
+
+        let countStudentsUpdated = 0;
+        let countUsersCreated = 0;
+        let countUsersLinked = 0;
+        let countRankHistoriesUpdated = 0;
+
+        for (const student of students) {
+            let needsStudentUpdate = false;
+            const updatePayload: Record<string, unknown> = {};
+
+            // Chuẩn hóa cấp đai
+            const normalizedCurrentRank = normalizeBeltRank(student.currentRank);
+            if (student.currentRank !== normalizedCurrentRank) {
+                updatePayload.currentRank = normalizedCurrentRank;
+                needsStudentUpdate = true;
+            }
+
+            if (needsStudentUpdate) {
+                await prisma.student.update({
+                    where: { id: student.id },
+                    data: updatePayload,
+                });
+                countStudentsUpdated++;
+            }
+
+            // Chuẩn hóa lịch sử đai
+            for (const rh of student.rankHistories) {
+                const normalizedHistoryRank = normalizeBeltRank(rh.rank);
+                if (rh.rank !== normalizedHistoryRank) {
+                    await prisma.rankHistory.update({
+                        where: { id: rh.id },
+                        data: { rank: normalizedHistoryRank },
+                    });
+                    countRankHistoriesUpdated++;
+                }
+            }
+
+            // Tạo/Đồng bộ tài khoản User theo đúng đặc tả họ tên và năm sinh
+            const { username, password } = generateStudentAccountInfo(student.fullName, student.studentCode, student.dateOfBirth);
+            const userEmail = student.email || `${username}@aikidoangiang.local`;
+
+            if (!student.user) {
+                const existingUser = await prisma.user.findUnique({
+                    where: { email: userEmail },
+                });
+
+                if (existingUser) {
+                    await prisma.user.update({
+                        where: { id: existingUser.id },
+                        data: { studentId: student.id },
+                    });
+                    countUsersLinked++;
+                } else {
+                    const passwordHash = await bcrypt.hash(password, 10);
+                    await prisma.user.create({
+                        data: {
+                            email: userEmail,
+                            name: student.fullName,
+                            passwordHash,
+                            role: student.title === "SHIDOIN" ? "COACH" : "STUDENT",
+                            studentId: student.id,
+                        },
+                    });
+                    countUsersCreated++;
+                }
+            } else if (!student.user.studentId) {
+                await prisma.user.update({
+                    where: { id: student.user.id },
+                    data: { studentId: student.id },
+                });
+                countUsersLinked++;
+            }
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: `Đồng bộ thành công! Cập nhật đai ${countStudentsUpdated} môn sinh, ${countRankHistoriesUpdated} lịch sử đai, tạo mới ${countUsersCreated} tài khoản User, liên kết bổ sung ${countUsersLinked} tài khoản.`,
+        });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Lỗi không xác định";
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
+    }
+}
+
+==================================================
 FILE: app/attendance/page.tsx
 ==================================================
 
@@ -5420,6 +6302,7 @@ import { ArrowLeft, CheckCircle2, Clock, CreditCard, MapPin, ExternalLink } from
 import { prisma } from "@/lib/prisma";
 import ExportButton from "@/components/ExportButton";
 import FeeTableRows from "@/components/FeeTableRows";
+import { DOJO_CONFIGS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -5474,19 +6357,19 @@ export default async function FeesPage({
     });
 
     const getStudentFeeConfig = (dojo?: string) => {
-        if (dojo === "TACHI") {
+        if (dojo === DOJO_CONFIGS.TACHI.key) {
             return {
-                amount: 600000,
+                amount: DOJO_CONFIGS.TACHI.feeAmount,
                 cycleLabel: `Quý ${currentQuarter} (3 tháng)`,
-                dojoName: "Sân Tachi",
-                mapUrl: "https://maps.app.goo.gl/7R1g5EPAysy4KhQm8",
+                dojoName: DOJO_CONFIGS.TACHI.name,
+                mapUrl: DOJO_CONFIGS.TACHI.mapUrl,
             };
         }
         return {
-            amount: 300000,
+            amount: DOJO_CONFIGS.HAYATE.feeAmount,
             cycleLabel: `Tháng ${currentMonth}`,
-            dojoName: "Aikido Hayate",
-            mapUrl: "https://maps.app.goo.gl/ee12w88ToMxg8mYC7",
+            dojoName: DOJO_CONFIGS.HAYATE.name,
+            mapUrl: DOJO_CONFIGS.HAYATE.mapUrl,
         };
     };
 
@@ -5555,8 +6438,8 @@ export default async function FeesPage({
                                 className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
                             >
                                 <option value="ALL" className="dark:bg-slate-900">Tất cả sân</option>
-                                <option value="HAYATE" className="dark:bg-slate-900">Sân Hayate (300k/tháng)</option>
-                                <option value="TACHI" className="dark:bg-slate-900">Sân Tachi (600k/quý)</option>
+                                <option value={DOJO_CONFIGS.HAYATE.key} className="dark:bg-slate-900">{DOJO_CONFIGS.HAYATE.name} ({(DOJO_CONFIGS.HAYATE.feeAmount / 1000)}k/tháng)</option>
+                                <option value={DOJO_CONFIGS.TACHI.key} className="dark:bg-slate-900">{DOJO_CONFIGS.TACHI.name} ({(DOJO_CONFIGS.TACHI.feeAmount / 1000)}k/quý)</option>
                             </select>
 
                             <select
@@ -5601,13 +6484,13 @@ export default async function FeesPage({
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 mb-1">
                             Sân 1
                         </span>
-                        <h3 className="font-semibold text-slate-900 dark:text-white">Aikido Hayate</h3>
+                        <h3 className="font-semibold text-slate-900 dark:text-white">{DOJO_CONFIGS.HAYATE.name}</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Học phí: <strong className="text-slate-800 dark:text-slate-200">300.000 đ / tháng</strong>
+                            Học phí: <strong className="text-slate-800 dark:text-slate-200">{DOJO_CONFIGS.HAYATE.feeAmount.toLocaleString("vi-VN")} đ / tháng</strong>
                         </p>
                     </div>
                     <a
-                        href="https://maps.app.goo.gl/ee12w88ToMxg8mYC7"
+                        href={DOJO_CONFIGS.HAYATE.mapUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg"
@@ -5623,13 +6506,13 @@ export default async function FeesPage({
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 mb-1">
                             Sân 2
                         </span>
-                        <h3 className="font-semibold text-slate-900 dark:text-white">Sân Tachi</h3>
+                        <h3 className="font-semibold text-slate-900 dark:text-white">{DOJO_CONFIGS.TACHI.name}</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Học phí: <strong className="text-slate-800 dark:text-slate-200">600.000 đ / quý (3 tháng)</strong>
+                            Học phí: <strong className="text-slate-800 dark:text-slate-200">{DOJO_CONFIGS.TACHI.feeAmount.toLocaleString("vi-VN")} đ / quý (3 tháng)</strong>
                         </p>
                     </div>
                     <a
-                        href="https://maps.app.goo.gl/7R1g5EPAysy4KhQm8"
+                        href={DOJO_CONFIGS.TACHI.mapUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg"
@@ -5693,7 +6576,7 @@ export default async function FeesPage({
                         Danh sách môn sinh - Tháng {currentMonth}/{currentYear}
                     </h2>
                     <span className="text-xs text-slate-400">
-                        {selectedDojo === "TACHI" ? "Thu định kỳ theo Quý" : selectedDojo === "HAYATE" ? "Thu định kỳ hàng Tháng" : "Toàn bộ cơ sở"}
+                        {selectedDojo === DOJO_CONFIGS.TACHI.key ? "Thu định kỳ theo Quý" : selectedDojo === DOJO_CONFIGS.HAYATE.key ? "Thu định kỳ hàng Tháng" : "Toàn bộ cơ sở"}
                     </span>
                 </div>
 
@@ -6061,7 +6944,7 @@ FILE: app/page.tsx
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { Shield, Calendar, Users, MapPin, Award, ArrowRight, Phone, Mail, Sparkles } from "lucide-react";
-
+import { TRAINING_SCHEDULES, DOJO_CONTACT_INFO } from "@/lib/constants";
 
 export default async function PublicHomePage() {
     const session = await getSession();
@@ -6074,14 +6957,14 @@ export default async function PublicHomePage() {
                 <div className="relative z-10 max-w-2xl space-y-6">
                     <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-800/60 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider">
                         <Sparkles className="w-3.5 h-3.5" />
-                        <span>Võ đường Aikido An Giang</span>
+                        <span>Võ đường Aikido {DOJO_CONTACT_INFO.location.split(",")[0]}</span>
                     </div>
                     <h1 className="text-3xl sm:text-5xl font-black tracking-tight uppercase leading-tight text-slate-900 dark:text-white">
                         Tinh hoa võ đạo <br />
                         <span className="text-red-600 dark:text-red-500">Rèn luyện thân tâm</span>
                     </h1>
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Chào mừng bạn đến với trang chính thức của võ đường Aikido An Giang. Nơi rèn luyện kỹ năng tự vệ, tinh thần kỷ luật và phát triển bản thân.
+                        Chào mừng bạn đến với trang chính thức của võ đường Aikido {DOJO_CONTACT_INFO.location.split(",")[0]}. Nơi rèn luyện kỹ năng tự vệ, tinh thần kỷ luật và phát triển bản thân.
                     </p>
                     <div className="flex flex-wrap items-center gap-3 pt-2">
                         {session ? (
@@ -6152,22 +7035,26 @@ export default async function PublicHomePage() {
                     </div>
                     <div>
                         <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Lịch tập luyện định kỳ</h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Các lớp học diễn ra xuyên suốt trong tuần tại võ đường An Giang.</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Các lớp học diễn ra xuyên suốt trong tuần tại võ đường {DOJO_CONTACT_INFO.location.split(",")[0]}.</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-2">
-                        <span className="px-2.5 py-1 rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-[10px]">THỨ 3 & THỨ 5</span>
-                        <div className="font-bold text-slate-800 dark:text-slate-200 text-sm">18:00 - 20:00</div>
-                        <p className="text-slate-500 dark:text-slate-400">Lớp cơ bản & kỹ thuật đòn căn bản cho môn sinh mới.</p>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-2">
-                        <span className="px-2.5 py-1 rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-[10px]">THỨ 7 & CHỦ NHẬT</span>
-                        <div className="font-bold text-slate-800 dark:text-slate-200 text-sm">16:30 - 18:30</div>
-                        <p className="text-slate-500 dark:text-slate-400">Lớp nâng cao, luyện kiếm (Bokken) và gậy (Jo).</p>
-                    </div>
+                    {TRAINING_SCHEDULES.map((schedule, idx) => (
+                        <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-2">
+                            <span className="px-2.5 py-1 rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-[10px]">
+                                {schedule.days}
+                            </span>
+                            <div className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                                {schedule.title}
+                            </div>
+                            <div className="text-slate-500 dark:text-slate-400 space-y-1">
+                                {schedule.sessions.map((session, sIdx) => (
+                                    <div key={sIdx}>{session}</div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </section>
 
@@ -6175,11 +7062,20 @@ export default async function PublicHomePage() {
             <section className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="space-y-2 text-center sm:text-left">
                     <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white">Liên hệ nhập môn</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Đăng ký tham gia lớp học Aikido tại An Giang.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Đăng ký tham gia lớp học Aikido tại {DOJO_CONTACT_INFO.location.split(",")[0]}.</p>
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-1 text-xs text-slate-600 dark:text-slate-300">
-                        <span className="flex items-center space-x-1.5"><MapPin className="w-4 h-4 text-red-600 dark:text-red-500" /><span>An Giang, Việt Nam</span></span>
-                        <span className="flex items-center space-x-1.5"><Phone className="w-4 h-4 text-red-600 dark:text-red-500" /><span>Liên hệ HLV Trưởng</span></span>
-                        <span className="flex items-center space-x-1.5"><Mail className="w-4 h-4 text-red-600 dark:text-red-500" /><span>aikidoangiang@dojo.com</span></span>
+                        <span className="flex items-center space-x-1.5">
+                            <MapPin className="w-4 h-4 text-red-600 dark:text-red-500" />
+                            <span>{DOJO_CONTACT_INFO.location}</span>
+                        </span>
+                        <span className="flex items-center space-x-1.5">
+                            <Phone className="w-4 h-4 text-red-600 dark:text-red-500" />
+                            <span>HLV Trưởng: {DOJO_CONTACT_INFO.headCoach} ({DOJO_CONTACT_INFO.coachRank}) - SĐT: {DOJO_CONTACT_INFO.phone}</span>
+                        </span>
+                        <span className="flex items-center space-x-1.5">
+                            <Mail className="w-4 h-4 text-red-600 dark:text-red-500" />
+                            <span>{DOJO_CONTACT_INFO.email}</span>
+                        </span>
                     </div>
                 </div>
                 {!session && (
@@ -7107,6 +8003,7 @@ import {
 import { createStudent, getNextStudentCode } from "@/app/actions/student";
 import CoachPermissionSettings from "@/components/CoachPermissionSettings";
 import DatePickerVN from "@/components/common/DatePickerVN";
+import { AIKIDO_RANKS } from "@/lib/constants";
 
 interface TempStudentItem {
     id: string;
@@ -7558,25 +8455,11 @@ export default function NewStudentPage() {
                                 onChange={(e) => setCurrentRank(e.target.value)}
                                 className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                             >
-                                <optgroup label="1. Nhập môn">
-                                    <option value="Đai trắng">Đai trắng</option>
-                                </optgroup>
-                                <optgroup label="2. Giai đoạn Đai Xanh">
-                                    <option value="Đai xanh 1 vạch">Đai xanh 1 vạch</option>
-                                    <option value="Đai xanh 2 vạch">Đai xanh 2 vạch</option>
-                                    <option value="Đai xanh 3 vạch">Đai xanh 3 vạch</option>
-                                </optgroup>
-                                <optgroup label="3. Giai đoạn Đai Nâu">
-                                    <option value="Đai nâu 1 vạch">Đai nâu 1 vạch</option>
-                                    <option value="Đai nâu 2 vạch">Đai nâu 2 vạch</option>
-                                    <option value="Đai nâu 3 vạch">Đai nâu 3 vạch (Dự bị Shodan)</option>
-                                </optgroup>
-                                <optgroup label="4. Giai đoạn Đai Đen (Hakama)">
-                                    <option value="Đai đen (Shodan)">Đai đen (Shodan - 1 Dan)</option>
-                                    <option value="Đai đen (Nidan)">Đai đen (Nidan - 2 Dan)</option>
-                                    <option value="Đai đen (Sandan)">Đai đen (Sandan - 3 Dan)</option>
-                                    <option value="Đai đen 4 Đẳng (Yondan)">Đai đen (Yondan - 4 Dan)</option>
-                                </optgroup>
+                                {AIKIDO_RANKS.map((rank) => (
+                                    <option key={rank} value={rank}>
+                                        {rank}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -8005,7 +8888,7 @@ FILE: app/students/[id]/page.tsx
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Trash2, UserCog, CreditCard, Activity, Calendar, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Trash2, UserCog, CreditCard, Activity, Calendar, ShieldAlert, KeyRound } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { deleteStudent } from "@/app/actions/student";
 import { getSession } from "@/lib/auth";
@@ -8043,6 +8926,11 @@ export default async function StudentDetailPage({
         pendingAvatar?: string | null;
         avatarStatus?: string | null;
         status: string;
+        user?: {
+            email: string;
+            // Nếu hệ thống lưu mật khẩu dạng plaintext hiển thị hoặc lưu ghi chú mật khẩu tạm
+            // Dưới đây hiển thị thông tin tài khoản liên kết lấy từ bảng User
+        } | null;
         tuitionFees?: {
             id: string;
             month: number;
@@ -8068,6 +8956,7 @@ export default async function StudentDetailPage({
     } | null>)({
         where: { id },
         include: {
+            user: true,
             tuitionFees: {
                 orderBy: [{ year: "desc" }, { month: "desc" }],
                 take: 6,
@@ -8093,7 +8982,7 @@ export default async function StudentDetailPage({
         return (
             <div className="max-w-md mx-auto space-y-6">
                 <Link
-                    href="/"
+                    href="/students"
                     className="inline-flex items-center space-x-2 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
@@ -8149,7 +9038,7 @@ export default async function StudentDetailPage({
         <div className="max-w-3xl mx-auto space-y-6 pb-12">
             <div className="flex items-center justify-between">
                 <Link
-                    href="/"
+                    href="/students"
                     className="inline-flex items-center space-x-2 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
@@ -8168,6 +9057,28 @@ export default async function StudentDetailPage({
                     </form>
                 )}
             </div>
+
+            {/* Thông tin tài khoản đăng nhập (Chỉ HLV Trưởng / SUPER_ADMIN mới nhìn thấy) */}
+            {isSuperAdmin && (
+                <div className="bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded-lg">
+                            <KeyRound className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                                Tài khoản hệ thống & Mật khẩu
+                            </h4>
+                            <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                                Tên đăng nhập: <strong className="font-mono text-slate-900 dark:text-white">{student.user?.email || "Chưa cấp tài khoản"}</strong>
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-xs bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 text-slate-600 dark:text-slate-300 shadow-2xs">
+                        Mật khẩu ban đầu: <code className="font-mono font-bold text-red-600">SĐT hoặc 123456</code> (Đã mã hóa)
+                    </div>
+                </div>
+            )}
 
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-100 dark:border-slate-800 gap-4">
@@ -8608,6 +9519,7 @@ FILE: components/CoachPermissionSettings.tsx
 "use client";
 
 import { Shield, KeyRound } from "lucide-react";
+import { STUDENT_TITLES } from "@/lib/constants";
 
 interface Props {
     title: string;
@@ -8627,6 +9539,11 @@ const FIELDS = [
     { key: "canEditAddress", label: "Địa chỉ thường trú" },
     { key: "canEditHealth", label: "Ghi chú sức khỏe & bệnh lý" },
     { key: "canEditStatus", label: "Trạng thái tập luyện" },
+];
+
+const PERMISSION_OPTIONS = [
+    { label: "Chỉnh sửa", value: "EDIT" },
+    { label: "Chỉ xem", value: "VIEW" },
 ];
 
 export default function CoachPermissionSettings({
@@ -8652,10 +9569,10 @@ export default function CoachPermissionSettings({
                     onChange={(e) => onTitleChange(e.target.value)}
                     className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                    <option value="MEMBER">Môn sinh thông thường</option>
-                    <option value="FUKU_SHIDOSHA">Lớp phó (Fuku Shidosha)</option>
-                    <option value="SHIDOSHA">Lớp trưởng (Shidosha)</option>
-                    <option value="SHIDOIN">Huấn luyện viên (Shidoin)</option>
+                    <option value="MEMBER">{STUDENT_TITLES.MEMBER}</option>
+                    <option value="FUKU_SHIDOSHA">{STUDENT_TITLES.FUKU_SHIDOSHA}</option>
+                    <option value="SHIDOSHA">{STUDENT_TITLES.SHIDOSHA}</option>
+                    <option value="SHIDOIN">{STUDENT_TITLES.SHIDOIN}</option>
                 </select>
             </div>
 
@@ -8675,16 +9592,22 @@ export default function CoachPermissionSettings({
                             <span className="font-semibold text-slate-800 dark:text-slate-200">
                                 Thêm mới Môn sinh
                             </span>
-                            <select
-                                name="canCreateStudent"
-                                defaultValue={permissions.canCreateStudent || "VIEW"}
-                                disabled={!isSuperAdmin}
-                                onChange={(e) => onPermissionChange?.("canCreateStudent", e.target.value)}
-                                className="px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
-                            >
-                                <option value="EDIT">Chỉnh sửa</option>
-                                <option value="VIEW">Chỉ xem</option>
-                            </select>
+                            <div className="flex items-center space-x-3">
+                                {PERMISSION_OPTIONS.map((opt) => (
+                                    <label key={opt.value} className="inline-flex items-center space-x-1 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        <input
+                                            type="radio"
+                                            name="canCreateStudent"
+                                            value={opt.value}
+                                            defaultChecked={(permissions.canCreateStudent || "VIEW") === opt.value}
+                                            disabled={!isSuperAdmin}
+                                            onChange={(e) => onPermissionChange?.("canCreateStudent", e.target.value)}
+                                            className="text-red-600 focus:ring-red-500"
+                                        />
+                                        <span>{opt.label}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Mã môn sinh cố định */}
@@ -8706,16 +9629,22 @@ export default function CoachPermissionSettings({
                                 <span className="font-medium text-slate-700 dark:text-slate-300">
                                     Sửa {item.label}
                                 </span>
-                                <select
-                                    name={item.key}
-                                    defaultValue={permissions[item.key] || "VIEW"}
-                                    disabled={!isSuperAdmin}
-                                    onChange={(e) => onPermissionChange?.(item.key, e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
-                                >
-                                    <option value="EDIT">Chỉnh sửa</option>
-                                    <option value="VIEW">Chỉ xem</option>
-                                </select>
+                                <div className="flex items-center space-x-3">
+                                    {PERMISSION_OPTIONS.map((opt) => (
+                                        <label key={opt.value} className="inline-flex items-center space-x-1 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+                                            <input
+                                                type="radio"
+                                                name={item.key}
+                                                value={opt.value}
+                                                defaultChecked={(permissions[item.key] || "VIEW") === opt.value}
+                                                disabled={!isSuperAdmin}
+                                                onChange={(e) => onPermissionChange?.(item.key, e.target.value)}
+                                                className="text-red-600 focus:ring-red-500"
+                                            />
+                                            <span>{opt.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -8853,6 +9782,7 @@ import { useState, useTransition } from "react";
 import { Award, FileText, Plus, X, Users, AlertCircle, Loader2 } from "lucide-react";
 import { generateExamDocx } from "@/lib/docxExport";
 import { createExamSession } from "@/app/actions/exam";
+import { AIKIDO_RANKS, DOJO_CONTACT_INFO } from "@/lib/constants";
 
 interface CoachItem {
     id: string;
@@ -8876,14 +9806,8 @@ interface Props {
     candidates: CandidateItem[];
 }
 
-const AVAILABLE_BELTS: readonly string[] = [
-    "Đai xanh 1 vạch",
-    "Đai xanh 2 vạch",
-    "Đai xanh 3 vạch",
-    "Đai nâu 1 vạch",
-    "Đai nâu 2 vạch",
-    "Đai nâu 3 vạch",
-];
+// Lấy danh sách cấp đai từ "Đai nâu 1 vạch" trở lên từ AIKIDO_RANKS chung
+const AVAILABLE_BELTS = AIKIDO_RANKS.slice(4);
 
 export default function CreateExamModal({ coaches, candidates }: Props) {
     const [isOpen, setIsOpen] = useState(false);
@@ -8901,20 +9825,26 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
     // 3. Ban chấm thi
     const [selectedExaminers, setSelectedExaminers] = useState<Record<string, { role: string; rank: string; fullName: string }>>({});
 
-    // 4. Chọn môn sinh tham gia thi
+    // State quản lý việc thêm môn sinh tự do vào ban chấm thi (lọc từ đai Nâu 1 trở lên)
+    const [showAddExaminerModal, setShowAddExaminerModal] = useState(false);
+    const [examinerSearchKeyword, setExaminerSearchKeyword] = useState("");
+
+    // 4. Chọn môn sinh tham gia thi (Lọc bỏ các môn sinh đang ở cấp đai "Đai nâu 3 vạch" nếu họ đã đạt mức tối đa xét đai thường)
+    const filteredCandidates = candidates.filter((c) => c.currentRank !== "Đai nâu 3 vạch");
+
     const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
     const [customRanks, setCustomRanks] = useState<Record<string, string>>({});
     const [globalSpecialReason, setGlobalSpecialReason] = useState("");
 
-    const toggleExaminer = (coach: CoachItem) => {
+    const toggleExaminer = (coachId: string, fullName: string, currentRank: string) => {
         setSelectedExaminers((prev) => {
             const next = { ...prev };
-            if (next[coach.id]) {
-                delete next[coach.id];
+            if (next[coachId]) {
+                delete next[coachId];
             } else {
-                next[coach.id] = {
-                    fullName: coach.fullName,
-                    rank: coach.currentRank,
+                next[coachId] = {
+                    fullName,
+                    rank: currentRank,
                     role: "Chấm phụ",
                 };
             }
@@ -8944,9 +9874,19 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
     };
 
     // Phân loại thí sinh đã chọn
-    const selectedStudents = candidates.filter((c) => selectedStudentIds.includes(c.id));
+    const selectedStudents = filteredCandidates.filter((c) => selectedStudentIds.includes(c.id));
     const eligibleStudents = selectedStudents.filter((c) => c.isEligible);
     const specialStudents = selectedStudents.filter((c) => !c.isEligible);
+
+    // Lọc danh sách HLV/môn sinh có cấp đai từ "Đai nâu 1 vạch" trở lên để thêm vào ban chấm thi
+    const brownAndBlackBeltIndex = AIKIDO_RANKS.indexOf("Đai nâu 1 vạch" as (typeof AIKIDO_RANKS)[number]);
+    const eligibleExaminerCandidates = candidates.filter((st) => {
+        const rankIdx = AIKIDO_RANKS.indexOf(st.currentRank as (typeof AIKIDO_RANKS)[number]);
+        // Bao gồm cả các HLV truyền vào hoặc môn sinh có đai từ nâu 1 trở lên
+        const isQualifiedRank = rankIdx !== -1 && rankIdx >= brownAndBlackBeltIndex;
+        const matchesKeyword = st.fullName.toLowerCase().includes(examinerSearchKeyword.toLowerCase()) || st.studentCode.toLowerCase().includes(examinerSearchKeyword.toLowerCase());
+        return isQualifiedRank && matchesKeyword;
+    });
 
     // Xuất file Word & Lưu Database
     const handleExportAndSave = () => {
@@ -8960,8 +9900,8 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
         if (headCoachPresent) {
             examinerList.push({
                 order: 0,
-                fullName: "Nguyễn Trần Anh Vũ",
-                rank: "Đai đen (Sandan - 3 Đẳng)",
+                fullName: DOJO_CONTACT_INFO.headCoach,
+                rank: DOJO_CONTACT_INFO.coachRank,
                 role: "Chấm chính",
             });
         }
@@ -9067,7 +10007,7 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                     HLV Trưởng có tham gia chấm kỳ thi này không?
                                 </span>
                                 <span className="text-xs text-amber-700 dark:text-amber-400">
-                                    Nếu chọn Có, Thầy Nguyễn Trần Anh Vũ sẽ đứng đầu Ban chấm thi với vai trò Chấm chính.
+                                    Nếu chọn Có, Thầy {DOJO_CONTACT_INFO.headCoach} sẽ đứng đầu Ban chấm thi với vai trò Chấm chính.
                                 </span>
                             </div>
                             <div className="flex items-center space-x-4 shrink-0">
@@ -9131,19 +10071,29 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                             </div>
                         </div>
 
-                        {/* 3. Ban chấm thi */}
+                        {/* 3. Ban chấm thi & Nút Thêm môn sinh (từ đai Nâu 1 trở lên) */}
                         <div className="space-y-3">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Users className="w-4 h-4 text-blue-500" />
-                                <span>Thành phần Ban chấm thi</span>
-                            </h3>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-blue-500" />
+                                    <span>Thành phần Ban chấm thi</span>
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddExaminerModal(true)}
+                                    className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Thêm môn sinh (Nâu 1+) vào ban chấm thi</span>
+                                </button>
+                            </div>
 
                             <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
                                 <table className="w-full text-left">
                                     <thead className="bg-slate-50 dark:bg-slate-800 font-semibold text-slate-500">
                                         <tr>
-                                            <th className="p-2.5 w-12 text-center">Chọn</th>
-                                            <th className="p-2.5">Họ và tên HLV</th>
+                                            <th className="p-2.5 w-12 text-center">Trạng thái</th>
+                                            <th className="p-2.5">Họ và tên</th>
                                             <th className="p-2.5">Cấp đai</th>
                                             <th className="p-2.5">VAI TRÒ CHẤM THI</th>
                                         </tr>
@@ -9153,10 +10103,10 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                             <tr className="bg-amber-50/40 dark:bg-amber-950/20 font-semibold">
                                                 <td className="p-2.5 text-center text-amber-600">★</td>
                                                 <td className="p-2.5 text-slate-900 dark:text-white">
-                                                    Nguyễn Trần Anh Vũ (HLV Trưởng)
+                                                    {DOJO_CONTACT_INFO.headCoach} (HLV Trưởng)
                                                 </td>
                                                 <td className="p-2.5 text-amber-700 dark:text-amber-400">
-                                                    Đai đen (Sandan - 3 Đẳng)
+                                                    {DOJO_CONTACT_INFO.coachRank}
                                                 </td>
                                                 <td className="p-2.5 font-bold text-red-600">Chấm chính</td>
                                             </tr>
@@ -9169,7 +10119,7 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                                         <input
                                                             type="checkbox"
                                                             checked={isSelected}
-                                                            onChange={() => toggleExaminer(c)}
+                                                            onChange={() => toggleExaminer(c.id, c.fullName, c.currentRank)}
                                                             className="rounded text-red-600 focus:ring-red-500"
                                                         />
                                                     </td>
@@ -9195,12 +10145,45 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                                 </tr>
                                             );
                                         })}
+                                        {/* Hiển thị các HLV/môn sinh bổ sung ngoài danh sách HLV mặc định */}
+                                        {Object.entries(selectedExaminers).map(([id, ex]) => {
+                                            if (!coaches.some((c) => c.id === id)) {
+                                                return (
+                                                    <tr key={id} className="bg-blue-50/30 dark:bg-blue-950/20">
+                                                        <td className="p-2.5 text-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={true}
+                                                                onChange={() => toggleExaminer(id, ex.fullName, ex.rank)}
+                                                                className="rounded text-red-600 focus:ring-red-500"
+                                                            />
+                                                        </td>
+                                                        <td className="p-2.5 font-medium text-slate-800 dark:text-slate-200">
+                                                            {ex.fullName} <span className="text-[10px] text-blue-600 bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 rounded ml-1">Bổ sung</span>
+                                                        </td>
+                                                        <td className="p-2.5 text-slate-500">{ex.rank}</td>
+                                                        <td className="p-2.5">
+                                                            <select
+                                                                value={ex.role}
+                                                                onChange={(e) => updateExaminerRole(id, e.target.value)}
+                                                                className="px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-red-500 text-xs font-semibold outline-none cursor-pointer"
+                                                            >
+                                                                <option value="Chấm chính" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Chấm chính</option>
+                                                                <option value="Chấm phụ" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Chấm phụ</option>
+                                                                <option value="Giám sát" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">Giám sát</option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+                                            return null;
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        {/* 4. Tuyển chọn môn sinh thi */}
+                        {/* 4. Tuyển chọn môn sinh thi (Đã lọc bỏ Đai nâu 3 vạch) */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -9227,7 +10210,7 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {candidates.map((st) => {
+                                        {filteredCandidates.map((st) => {
                                             const isChecked = selectedStudentIds.includes(st.id);
                                             return (
                                                 <tr key={st.id} className={isChecked ? "bg-red-50/30 dark:bg-red-950/20" : ""}>
@@ -9309,6 +10292,71 @@ export default function CreateExamModal({ coaches, candidates }: Props) {
                                     <FileText className="w-4 h-4" />
                                 )}
                                 <span>{isPending ? "Đang xử lý..." : "Lưu & Xuất phiếu chấm thi Word"}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal phụ chọn môn sinh từ đai Nâu 1 trở lên vào hội đồng chấm thi */}
+            {showAddExaminerModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                                Chọn môn sinh (Cấp đai Đai nâu 1 vạch trở lên) làm giám khảo phụ
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowAddExaminerModal(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên hoặc mã môn sinh..."
+                                value={examinerSearchKeyword}
+                                onChange={(e) => setExaminerSearchKeyword(e.target.value)}
+                                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            {eligibleExaminerCandidates.length === 0 ? (
+                                <div className="p-4 text-center text-slate-400">Không tìm thấy môn sinh phù hợp (cần đai Nâu 1 trở lên).</div>
+                            ) : (
+                                eligibleExaminerCandidates.map((st) => {
+                                    const isAdded = Boolean(selectedExaminers[st.id]);
+                                    return (
+                                        <div key={st.id} className="p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                            <div>
+                                                <div className="font-bold text-slate-900 dark:text-white">{st.fullName} <span className="font-mono text-slate-400 font-normal">({st.studentCode})</span></div>
+                                                <div className="text-amber-700 dark:text-amber-400 font-medium">{st.currentRank}</div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleExaminer(st.id, st.fullName, st.currentRank)}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${isAdded ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                                            >
+                                                {isAdded ? "Đã thêm (Bỏ)" : "Thêm vào ban chấm"}
+                                            </button>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowAddExaminerModal(false)}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+                            >
+                                Hoàn tất
                             </button>
                         </div>
                     </div>
@@ -11930,8 +12978,9 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                         {/* Mobile Hamburger Button */}
                         <div className="md:hidden flex items-center">
                             <button
+                                type="button"
                                 onClick={() => setIsOpen(!isOpen)}
-                                className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative"
+                                className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 relative cursor-pointer"
                             >
                                 {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                                 {displayCount > 0 && !isOpen && isSuperAdmin && (
@@ -12016,11 +13065,13 @@ export default function NavbarClient({ session, pendingCount }: NavbarClientProp
                             </>
                         )}
 
-                        <NavbarAuth
-                            session={session}
-                            isMobile={true}
-                            onItemClick={() => setIsOpen(false)}
-                        />
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <NavbarAuth
+                                session={session}
+                                isMobile={true}
+                                onItemClick={() => setIsOpen(false)}
+                            />
+                        </div>
                     </div>
                 )}
             </nav>
@@ -12968,12 +14019,14 @@ FILE: components/StudentEditForm.tsx
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Save, HeartPulse } from "lucide-react";
+import { Save, HeartPulse, CheckCircle2 } from "lucide-react";
 import { updateStudent } from "@/app/actions/student";
 import CoachPermissionSettings from "@/components/CoachPermissionSettings";
 import DatePickerVN from "@/components/common/DatePickerVN";
+import { AIKIDO_RANKS, DOJO_CONFIGS } from "@/lib/constants";
 
 interface Props {
     student: {
@@ -12995,9 +14048,13 @@ interface Props {
 }
 
 export default function StudentEditForm({ student }: Props) {
-    const [selectedDojo, setSelectedDojo] = useState(student.dojo || "HAYATE");
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+
+    const [selectedDojo, setSelectedDojo] = useState(student.dojo || DOJO_CONFIGS.HAYATE.key);
     const [title, setTitle] = useState(student.title || "MEMBER");
     const [isDirty, setIsDirty] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     // Format ngày có sẵn từ DB sang dd/MM/yyyy để truyền vào DatePickerVN
     const formatToVNDate = (d: Date | null | undefined) => {
@@ -13015,10 +14072,10 @@ export default function StudentEditForm({ student }: Props) {
 
     // Tách phần số cố định phía sau (ví dụ: HYT-002 => 002)
     const match = student.studentCode ? student.studentCode.match(/\d+$/) : null;
-    const suffix = match ? match[0] : student.studentCode.replace(/^(HYT-|TC-)/, "");
+    const suffix = match ? match[0] : student.studentCode.replace(new RegExp(`^(${DOJO_CONFIGS.HAYATE.codePrefix}-|${DOJO_CONFIGS.TACHI.codePrefix}-)`), "");
 
-    // Tiền tố tự động nhảy theo sân đã chọn
-    const currentPrefix = selectedDojo === "TACHI" ? "TC-" : "HYT-";
+    // Tiền tố tự động nhảy theo sân đã chọn sử dụng DOJO_CONFIGS
+    const currentPrefix = selectedDojo === DOJO_CONFIGS.TACHI.key ? `${DOJO_CONFIGS.TACHI.codePrefix}-` : `${DOJO_CONFIGS.HAYATE.codePrefix}-`;
     const computedStudentCode = `${currentPrefix}${suffix}`;
 
     // Cảnh báo khi người dùng reload hoặc tắt trang mà chưa lưu dữ liệu
@@ -13044,15 +14101,51 @@ export default function StudentEditForm({ student }: Props) {
         setIsDirty(true);
     };
 
-    const updateStudentWithId = updateStudent.bind(null, student.id);
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsDirty(false);
+
+        const formData = new FormData(e.currentTarget);
+
+        startTransition(async () => {
+            try {
+                // Nhận kết quả trả về từ Server Action
+                const result = (await updateStudent(student.id, formData)) as { success?: boolean; error?: string } | undefined;
+
+                // Nếu server trả về lỗi
+                if (result && typeof result === "object" && "success" in result && result.success === false) {
+                    alert(result.error || "Có lỗi xảy ra khi cập nhật!");
+                    return;
+                }
+
+                // Thành công: Hiển thị thông báo riêng và tự động chuyển hướng sau 2 giây
+                setSuccessMessage("Cập nhật hồ sơ môn sinh thành công! Đang chuyển về danh sách...");
+                setTimeout(() => {
+                    router.push("/students");
+                    router.refresh();
+                }, 2000);
+
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : "Lỗi hệ thống";
+                alert(message);
+            }
+        });
+    };
 
     return (
         <form
-            action={updateStudentWithId}
-            onSubmit={() => setIsDirty(false)}
+            onSubmit={handleSubmit}
             onChange={() => setIsDirty(true)}
-            className="mt-6 space-y-5"
+            className="mt-6 space-y-5 relative"
         >
+            {/* Banner thông báo thành công riêng biệt */}
+            {successMessage && (
+                <div className="fixed top-6 right-6 z-50 flex items-center space-x-3 bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-xl border border-emerald-500 transition-all">
+                    <CheckCircle2 className="w-6 h-6 shrink-0 text-emerald-200" />
+                    <span className="text-sm font-semibold">{successMessage}</span>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Chuyển sân tập chính & Tự đổi tiền tố mã */}
                 <div>
@@ -13065,8 +14158,12 @@ export default function StudentEditForm({ student }: Props) {
                         onChange={handleDojoChange}
                         className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500"
                     >
-                        <option value="HAYATE">Aikido Hayate (Học phí 300k/tháng)</option>
-                        <option value="TACHI">Sân Tachi (Học phí 600k/quý)</option>
+                        <option value={DOJO_CONFIGS.HAYATE.key}>
+                            {DOJO_CONFIGS.HAYATE.name} (Học phí {DOJO_CONFIGS.HAYATE.feeAmount.toLocaleString('vi-VN')}đ/{DOJO_CONFIGS.HAYATE.feeCycle.toLowerCase()})
+                        </option>
+                        <option value={DOJO_CONFIGS.TACHI.key}>
+                            {DOJO_CONFIGS.TACHI.name} (Học phí {DOJO_CONFIGS.TACHI.feeAmount.toLocaleString('vi-VN')}đ/{DOJO_CONFIGS.TACHI.feeCycle.toLowerCase()})
+                        </option>
                     </select>
                 </div>
 
@@ -13114,24 +14211,11 @@ export default function StudentEditForm({ student }: Props) {
                         defaultValue={student.currentRank}
                         className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                     >
-                        <optgroup label="1. Nhập môn">
-                            <option value="Đai trắng trơn">Đai trắng</option>
-                        </optgroup>
-                        <optgroup label="2. Giai đoạn Đai Xanh">
-                            <option value="Đai xanh 1 vạch">Đai xanh 1 vạch</option>
-                            <option value="Đai xanh 2 vạch">Đai xanh 2 vạch</option>
-                            <option value="Đai xanh 3 vạch">Đai xanh 3 vạch</option>
-                        </optgroup>
-                        <optgroup label="3. Giai đoạn Đai Nâu">
-                            <option value="Đai nâu 1 vạch">Đai nâu 1 vạch</option>
-                            <option value="Đai nâu 2 vạch">Đai nâu 2 vạch</option>
-                            <option value="Đai nâu 3 vạch">Đai nâu 3 vạch (Dự bị Shodan)</option>
-                        </optgroup>
-                        <optgroup label="4. Giai đoạn Đai Đen (Hakama)">
-                            <option value="Đai đen (Shodan)">Đai đen (Shodan - 1 Dan)</option>
-                            <option value="Đai đen (Nidan)">Đai đen (Nidan - 2 Dan)</option>
-                            <option value="Đai đen (Sandan)">Đai đen (Sandan - 3 Dan)</option>
-                        </optgroup>
+                        {AIKIDO_RANKS.map((rank) => (
+                            <option key={rank} value={rank}>
+                                {rank}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
@@ -13251,17 +14335,18 @@ export default function StudentEditForm({ student }: Props) {
 
             <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <Link
-                    href="/"
+                    href="/students"
                     className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 >
                     Hủy
                 </Link>
                 <button
                     type="submit"
-                    className="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    disabled={isPending || !!successMessage}
+                    className="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
                 >
                     <Save className="w-4 h-4" />
-                    <span>Cập nhật</span>
+                    <span>{isPending ? "Đang lưu..." : successMessage ? "Đã lưu thành công" : "Cập nhật"}</span>
                 </button>
             </div>
         </form>
@@ -13607,6 +14692,93 @@ export async function deleteSession() {
     const cookieStore = await cookies();
     cookieStore.delete("auth_token");
 }
+
+==================================================
+FILE: lib/constants.ts
+==================================================
+
+// lib/constants.ts
+
+//Khai báo chung
+
+// 1. Danh mục cấp đai chuẩn của võ đường
+export const AIKIDO_RANKS = [
+    "Đai trắng",
+    "Đai xanh 1 vạch",
+    "Đai xanh 2 vạch",
+    "Đai xanh 3 vạch",
+    "Đai nâu 1 vạch",
+    "Đai nâu 2 vạch",
+    "Đai nâu 3 vạch",
+    "Đai đen (Shodan - 1 Đẳng)",
+    "Đai đen (Nidan - 2 Đẳng)",
+    "Đai đen (Sandan - 3 Đẳng)",
+    "Đai đen (Yondan - 4 Đẳng)",
+    "Đai đen (Godan - 5 Đẳng)",
+    "Đai đen (Rokudan - 6 Đẳng)",
+    "Đai đen (Nanadan - 7 Đẳng)",
+    "Đai đen (Hachidan - 8 Đẳng)",
+] as const;
+
+// 2. Thông tin chi tiết các sân tập & học phí
+export const DOJO_CONFIGS = {
+    HAYATE: {
+        key: "HAYATE",
+        name: "Aikido Hayate",
+        shortName: "Hayate",
+        codePrefix: "HYT",
+        feeAmount: 300000,
+        feeCycle: "Tháng",
+        mapUrl: "https://maps.app.goo.gl/ee12w88ToMxg8mYC7",
+        address: "An Giang",
+    },
+    TACHI: {
+        key: "TACHI",
+        name: "Sân Tachi",
+        shortName: "Tachi",
+        codePrefix: "TC",
+        feeAmount: 600000,
+        feeCycle: "Quý (3 tháng)",
+        mapUrl: "https://maps.app.goo.gl/7R1g5EPAysy4KhQm8",
+        address: "An Giang",
+    },
+} as const;
+
+// 3. Lịch tập luyện định kỳ chung (Dùng mảng chứa các dòng ca tập để hiển thị xuống dòng linh hoạt)
+export const TRAINING_SCHEDULES = [
+    {
+        days: "Thứ 3, 5, 7",
+        title: "Sân Hayate",
+        sessions: [
+            "19:30 - 20:30"
+        ],
+    },
+    {
+        days: "Thứ 2, 4, 6",
+        title: "Sân Tachi",
+        sessions: [
+            "Ca 1: 17:30 - 19:00",
+            "Ca 2: 19:10 - 20:30"
+        ],
+    },
+];
+
+// 4. Các chức vụ võ đường
+export const STUDENT_TITLES = {
+    MEMBER: "Môn sinh (MEMBER)",
+    FUKU_SHIDOSHA: "Lớp phó (FUKU_SHIDOSHA)",
+    SHIDOSHA: "Lớp trưởng (SHIDOSHA)",
+    SHIDOIN: "Huấn luyện viên (SHIDOIN)",
+} as const;
+
+// 5. Thông tin liên hệ & HLV Trưởng (Dùng cho trang chủ)
+export const DOJO_CONTACT_INFO = {
+    headCoach: "Nguyễn Trần Anh Vũ",
+    coachRank: "Đai Đen 4 Đẳng",
+    phone: "058.312.4569",
+    location: "An Giang, Việt Nam",
+    email: "aikidoangiang@dojo.com",
+} as const;
 
 ==================================================
 FILE: lib/docxExport.ts
@@ -14364,6 +15536,7 @@ export function checkPromotionEligibility(
 ) {
     const normalized = normalizeRankName(currentRank);
 
+    // Chặn nếu đã đạt đai đen
     if (normalized.includes("Đai đen")) {
         return {
             isEligible: false,
@@ -14374,6 +15547,20 @@ export function checkPromotionEligibility(
             attendedSessions,
             requiredSessions: 0,
             isMaxRank: true,
+        };
+    }
+
+    // Lọc bỏ gợi ý thăng đai nếu môn sinh đang mang cấp đai Nâu 3
+    if (normalized === "Đai nâu 3 vạch") {
+        return {
+            isEligible: false,
+            nextRank: "Xét duyệt qua kỳ thi đai đen",
+            progressPercent: 100,
+            daysActive: 0,
+            requiredDays: 0,
+            attendedSessions,
+            requiredSessions: 0,
+            isMaxRank: false,
         };
     }
 

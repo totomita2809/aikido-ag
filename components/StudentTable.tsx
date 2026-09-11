@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Users, Plus, Calendar, Award } from "lucide-react";
 import SplashScreen from "@/components/SplashScreen";
@@ -16,7 +16,7 @@ interface Student {
     phone: string | null;
     joinDate: Date | null;
     status: string;
-    title: string; // Thêm trường title để đọc dữ liệu từ Prisma
+    title: string;
 }
 
 interface StudentTableProps {
@@ -24,6 +24,8 @@ interface StudentTableProps {
     totalStudents: number;
     activeStudents: number;
     blackBeltCount: number;
+    currentUserRole?: string;
+    currentStudentId?: string | null;
 }
 
 export default function StudentTable({
@@ -31,9 +33,29 @@ export default function StudentTable({
     totalStudents,
     activeStudents,
     blackBeltCount,
+    currentUserRole,
+    currentStudentId,
 }: StudentTableProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+
+    const isStudent = currentUserRole === "STUDENT";
+
+    // Khi cập nhật xong quay về có kèm mã #student-..., tắt logo và cuộn mượt đến dòng môn sinh
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.location.hash) {
+            const targetId = window.location.hash.replace("#", "");
+            const timer = setTimeout(() => {
+                setIsLoading(false);
+                const el = document.getElementById(targetId);
+                if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }, 100);
+
+            return () => clearTimeout(timer);
+        }
+    }, []);
 
     const filteredStudents = initialStudents.filter((student) => {
         const term = search.toLowerCase().trim();
@@ -91,13 +113,15 @@ export default function StudentTable({
                     </div>
                     <div className="flex items-center space-x-2.5">
                         <ExportButton type="STUDENTS" />
-                        <Link
-                            href="/students/new"
-                            className="inline-flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                        >
-                            <Plus className="h-4 w-4" />
-                            <span>Thêm môn sinh mới</span>
-                        </Link>
+                        {!isStudent && (
+                            <Link
+                                href="/students/new"
+                                className="inline-flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                            >
+                                <Plus className="h-4 w-4" />
+                                <span>Thêm môn sinh mới</span>
+                            </Link>
+                        )}
                     </div>
                 </div>
 
@@ -181,69 +205,125 @@ export default function StudentTable({
                                         <th className="px-5 py-3.5">Mã số</th>
                                         <th className="px-5 py-3.5">Họ và tên</th>
                                         <th className="px-5 py-3.5">Cấp đai</th>
-                                        <th className="px-5 py-3.5">Số điện thoại</th>
+                                        {/* Ẩn cột SĐT đối với tài khoản Môn sinh */}
+                                        {!isStudent && <th className="px-5 py-3.5">Số điện thoại</th>}
                                         <th className="px-5 py-3.5">Ngày nhập môn</th>
                                         <th className="px-5 py-3.5 text-right">Trạng thái</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {filteredStudents.map((student) => (
-                                        <tr
-                                            key={student.id}
-                                            className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
-                                        >
-                                            {/* Bấm vào Mã số để xem hồ sơ chi tiết */}
-                                            <td className="px-5 py-4 font-mono font-semibold">
-                                                <Link
-                                                    href={`/students/${student.id}`}
-                                                    className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
-                                                >
-                                                    {student.studentCode}
-                                                </Link>
-                                            </td>
+                                    {filteredStudents.map((student) => {
+                                        const isSelf = currentStudentId === student.id;
 
-                                            {/* Bấm vào Họ và tên để xem hồ sơ chi tiết (Hiển thị 2 dòng: Tên ở trên, chức danh ở dưới) */}
-                                            <td className="px-5 py-4">
-                                                <Link
-                                                    href={`/students/${student.id}`}
-                                                    className="group block"
-                                                >
-                                                    <span className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 hover:underline transition-colors block">
-                                                        {student.fullName}
-                                                    </span>
-                                                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
-                                                        {getTitleLabel(student.title)}
-                                                    </span>
-                                                </Link>
-                                            </td>
+                                        return (
+                                            <tr
+                                                key={student.id}
+                                                id={`student-${student.id}`}
+                                                className={`transition-all scroll-mt-24 target:bg-amber-100/80 dark:target:bg-amber-950/60 target:ring-2 target:ring-amber-500 ${isSelf
+                                                        ? "bg-red-50/60 dark:bg-red-950/30 font-semibold"
+                                                        : "hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                                                    }`}
+                                            >
+                                                {/* Mã số: Nếu là chính mình thì trỏ về /students/me, người khác thì khóa */}
+                                                <td className="px-5 py-4 font-mono font-semibold">
+                                                    {isStudent ? (
+                                                        isSelf ? (
+                                                            <Link
+                                                                href="/students/me"
+                                                                className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+                                                            >
+                                                                {student.studentCode}
+                                                            </Link>
+                                                        ) : (
+                                                            <span className="text-slate-700 dark:text-slate-300">
+                                                                {student.studentCode}
+                                                            </span>
+                                                        )
+                                                    ) : (
+                                                        <Link
+                                                            href={`/students/${student.id}`}
+                                                            className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+                                                        >
+                                                            {student.studentCode}
+                                                        </Link>
+                                                    )}
+                                                </td>
 
-                                            <td className="px-5 py-4">
-                                                <span
-                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRankBadgeColor(
-                                                        student.currentRank
-                                                    )}`}
-                                                >
-                                                    {student.currentRank}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
-                                                {student.phone || "—"}
-                                            </td>
-                                            <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
-                                                <div className="flex items-center space-x-1.5">
-                                                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                                                    <span>
-                                                        {student.joinDate ? new Date(student.joinDate).toLocaleDateString("vi-VN") : "—"}
+                                                {/* Họ và tên: Nếu là chính mình thì trỏ về /students/me, người khác thì khóa */}
+                                                <td className="px-5 py-4">
+                                                    {isStudent ? (
+                                                        isSelf ? (
+                                                            <Link href="/students/me" className="group block">
+                                                                <span className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 hover:underline transition-colors block">
+                                                                    {student.fullName}
+                                                                    <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-red-600 text-white font-black uppercase">
+                                                                        Bạn
+                                                                    </span>
+                                                                </span>
+                                                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
+                                                                    {getTitleLabel(student.title)}
+                                                                </span>
+                                                            </Link>
+                                                        ) : (
+                                                            <div className="block">
+                                                                <span className="font-semibold text-slate-900 dark:text-white block">
+                                                                    {student.fullName}
+                                                                </span>
+                                                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
+                                                                    {getTitleLabel(student.title)}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    ) : (
+                                                        <Link href={`/students/${student.id}`} className="group block">
+                                                            <span className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 hover:underline transition-colors block">
+                                                                {student.fullName}
+                                                                {isSelf && (
+                                                                    <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-red-600 text-white font-black uppercase">
+                                                                        Bạn
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
+                                                                {getTitleLabel(student.title)}
+                                                            </span>
+                                                        </Link>
+                                                    )}
+                                                </td>
+
+                                                <td className="px-5 py-4">
+                                                    <span
+                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRankBadgeColor(
+                                                            student.currentRank
+                                                        )}`}
+                                                    >
+                                                        {student.currentRank}
                                                     </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-4 text-right">
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400">
-                                                    {student.status === "ACTIVE" ? "Đang tập" : student.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+
+                                                {/* Chỉ Admin/HLV mới thấy cột số điện thoại */}
+                                                {!isStudent && (
+                                                    <td className="px-5 py-4 text-slate-500 dark:text-slate-400 font-mono">
+                                                        {student.phone || "—"}
+                                                    </td>
+                                                )}
+
+                                                <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
+                                                    <div className="flex items-center space-x-1.5">
+                                                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                                        <span>
+                                                            {student.joinDate ? new Date(student.joinDate).toLocaleDateString("vi-VN") : "—"}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-4 text-right">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400">
+                                                        {student.status === "ACTIVE" ? "Đang tập" : student.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>

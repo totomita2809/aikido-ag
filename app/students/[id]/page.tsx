@@ -28,6 +28,7 @@ export default async function StudentDetailPage({
         id: string;
         studentCode: string;
         fullName: string;
+        email?: string | null;
         currentRank: string;
         dojo: string;
         healthNote?: string | null;
@@ -40,9 +41,8 @@ export default async function StudentDetailPage({
         avatarStatus?: string | null;
         status: string;
         user?: {
+            username?: string | null;
             email: string;
-            // Nếu hệ thống lưu mật khẩu dạng plaintext hiển thị hoặc lưu ghi chú mật khẩu tạm
-            // Dưới đây hiển thị thông tin tài khoản liên kết lấy từ bảng User
         } | null;
         tuitionFees?: {
             id: string;
@@ -147,6 +147,19 @@ export default async function StudentDetailPage({
         ? await attendanceModel.count({ where: { studentId: id, status: "PRESENT" } })
         : 0;
 
+    // Tính toán thông tin tài khoản hiển thị chính xác theo từng môn sinh
+    const displayUsername =
+        student.user?.username ||
+        student.user?.email ||
+        student.email ||
+        `${student.studentCode.toLowerCase()}@aikidoangiang.local`;
+
+    const initialPassword = student.dateOfBirth
+        ? new Date(student.dateOfBirth).getUTCFullYear().toString()
+        : student.phone && student.phone.trim() !== ""
+            ? student.phone.trim()
+            : "123456";
+
     return (
         <div className="max-w-3xl mx-auto space-y-6 pb-12">
             <div className="flex items-center justify-between">
@@ -183,12 +196,12 @@ export default async function StudentDetailPage({
                                 Tài khoản hệ thống & Mật khẩu
                             </h4>
                             <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-                                Tên đăng nhập: <strong className="font-mono text-slate-900 dark:text-white">{student.user?.email || "Chưa cấp tài khoản"}</strong>
+                                Tên đăng nhập: <strong className="font-mono text-slate-900 dark:text-white">{displayUsername}</strong>
                             </p>
                         </div>
                     </div>
                     <div className="text-xs bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 text-slate-600 dark:text-slate-300 shadow-2xs">
-                        Mật khẩu ban đầu: <code className="font-mono font-bold text-red-600">SĐT hoặc 123456</code> (Đã mã hóa)
+                        Mật khẩu ban đầu: <code className="font-mono font-bold text-red-600">{initialPassword}</code> (Đã mã hóa)
                     </div>
                 </div>
             )}

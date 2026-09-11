@@ -146,29 +146,70 @@ export async function createStudent(formData: FormData) {
         data: studentData,
     });
 
-    // Tự động cấp tài khoản đăng nhập (User) gắn liền với hồ sơ Môn sinh mới
-    const userEmail = email || `${cleanCode.toLowerCase()}@aikidoangiang.local`;
-    const defaultPassword = phone || "123456";
+    // 1. Tự sinh username không dấu chuẩn theo họ + tên + số đuôi mã (ví dụ: kiemthu023)
+    const cleanName = fullName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .toLowerCase()
+        .trim();
+
+    const nameParts = cleanName.split(/\s+/).filter(Boolean);
+    let usernamePrefix = "";
+    if (nameParts.length >= 2) {
+        const lastName = nameParts[0].replace(/[^a-z0-9]/g, "");
+        const firstName = nameParts[nameParts.length - 1].replace(/[^a-z0-9]/g, "");
+        usernamePrefix = `${lastName}${firstName}`;
+    } else if (nameParts.length === 1) {
+        usernamePrefix = nameParts[0].replace(/[^a-z0-9]/g, "");
+    } else {
+        usernamePrefix = "user";
+    }
+
+    const generatedUsername = `${usernamePrefix}${suffix}`;
+    const userEmail = email || `${generatedUsername}@aikidoangiang.local`;
+
+    // 2. Mật khẩu khởi tạo: ưu tiên Năm sinh -> SĐT -> 123456
+    let defaultPassword = "123456";
+    if (dateOfBirth) {
+        defaultPassword = dateOfBirth.getUTCFullYear().toString();
+    } else if (phone && phone.trim() !== "") {
+        defaultPassword = phone.trim();
+    }
+
     const passwordHash = await bcrypt.hash(defaultPassword, 10);
 
-    const existingUser = await prisma.user.findUnique({
-        where: { email: userEmail },
+    const existingUser = await prisma.user.findFirst({
+        where: {
+            OR: [
+                { email: userEmail },
+                { username: generatedUsername },
+            ],
+        },
     });
 
     if (!existingUser) {
         await prisma.user.create({
             data: {
+                username: generatedUsername,
                 email: userEmail,
                 name: fullName,
                 passwordHash,
                 role: title === "SHIDOIN" ? "COACH" : "STUDENT",
                 studentId: newStudent.id,
+                mustChangePassword: true,
             },
         });
     } else {
         await prisma.user.update({
-            where: { email: userEmail },
-            data: { studentId: newStudent.id },
+            where: { id: existingUser.id },
+            data: {
+                username: generatedUsername,
+                email: userEmail,
+                name: fullName,
+                studentId: newStudent.id,
+            },
         });
     }
 
@@ -192,9 +233,19 @@ export async function createStudent(formData: FormData) {
 
     revalidatePath("/students");
     revalidatePath("/admin/approvals");
-    return { success: true, id: newStudent.id };
-}
 
+    return {
+        success: true,
+        id: newStudent.id,
+        account: {
+            username: generatedUsername,
+            email: userEmail,
+            password: defaultPassword,
+            fullName: fullName,
+            studentCode: cleanCode,
+        },
+    };
+}
 export async function updateStudent(id: string, formData: FormData) {
     const session = await getSession();
     if (!session) {

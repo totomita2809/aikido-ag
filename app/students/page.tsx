@@ -121,6 +121,8 @@ export default async function HomePage() {
                     totalStudents={totalStudents}
                     activeStudents={activeStudents}
                     blackBeltCount={blackBeltCount}
+                    currentUserRole={session?.role}
+                    currentStudentId={session?.studentId}
                 />
             </div>
         </AuthGuard>

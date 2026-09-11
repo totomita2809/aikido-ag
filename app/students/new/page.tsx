@@ -44,6 +44,14 @@ interface TempStudentItem {
     };
 }
 
+interface CreatedAccountItem {
+    username: string;
+    email: string;
+    password: string;
+    fullName: string;
+    studentCode: string;
+}
+
 export default function NewStudentPage() {
     const router = useRouter();
 
@@ -78,6 +86,9 @@ export default function NewStudentPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
+    // State lưu thông tin các tài khoản vừa được cấp để hiển thị popup
+    const [createdAccounts, setCreatedAccounts] = useState<CreatedAccountItem[]>([]);
+
     // Cảnh báo khi người dùng reload hoặc thoát trang mà chưa lưu dữ liệu
     const hasUnsavedData = tempList.length > 0 || fullName.trim().length > 0;
     useEffect(() => {
@@ -92,7 +103,7 @@ export default function NewStudentPage() {
         };
     }, [hasUnsavedData, saveSuccess]);
 
-    // Tự động kiểm tra database và danh sách lưu tạm để lấy số thứ tự lớn nhất toàn hệ thống (không trùng giữa các sân và HLV)
+    // Tự động kiểm tra database và danh sách lưu tạm để lấy số thứ tự lớn nhất toàn hệ thống
     const updateAutoCode = async (prefix: string, currentTemps: TempStudentItem[]) => {
         setIsGeneratingCode(true);
         try {
@@ -103,7 +114,7 @@ export default function NewStudentPage() {
                 maxNum = parseInt(matchDb[0], 10);
             }
 
-            // Quét tất cả các số thứ tự trong danh sách lưu tạm (không phân biệt tiền tố)
+            // Quét tất cả các số thứ tự trong danh sách lưu tạm
             for (const item of currentTemps) {
                 const matchTemp = item.display.studentCode.match(/\d+$/);
                 if (matchTemp && matchTemp[0]) {
@@ -296,18 +307,40 @@ export default function NewStudentPage() {
         setShowConfirmModal(false);
     };
 
-    // Lưu tất cả môn sinh vào DB và chuyển về trang quản lý
+    // Lưu tất cả môn sinh vào DB và hiển thị popup tài khoản
     const handleSaveAll = async () => {
         setIsSaving(true);
         try {
+            const accounts: CreatedAccountItem[] = [];
+
             for (const item of tempList) {
-                await createStudent(item.formData);
+                const res = (await createStudent(item.formData)) as
+                    | {
+                        success: boolean;
+                        id: string;
+                        account?: CreatedAccountItem;
+                    }
+                    | undefined;
+
+                if (res?.account) {
+                    accounts.push(res.account);
+                }
             }
+
             setSaveSuccess(true);
-            setTimeout(() => {
-                router.push("/students");
-                router.refresh();
-            }, 1500);
+            setIsSaving(false);
+            setShowConfirmModal(false);
+            setTempList([]);
+
+            // Nếu nhận được thông tin tài khoản thì mở Popup thông báo
+            if (accounts.length > 0) {
+                setCreatedAccounts(accounts);
+            } else {
+                setTimeout(() => {
+                    router.push("/students");
+                    router.refresh();
+                }, 1500);
+            }
         } catch (error: unknown) {
             console.error(error);
             const message = error instanceof Error ? error.message : "Có lỗi xảy ra trong quá trình lưu môn sinh. Vui lòng thử lại!";
@@ -685,7 +718,7 @@ export default function NewStudentPage() {
                                     <Check className="w-8 h-8" />
                                 </div>
                                 <h4 className="font-bold text-slate-900 dark:text-white text-base">Đã lưu thành công!</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">Đang chuyển về danh sách môn sinh...</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Đang chuẩn bị thông tin tài khoản...</p>
                             </div>
                         ) : (
                             <>
@@ -759,6 +792,67 @@ export default function NewStudentPage() {
                                 </div>
                             </>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Thông Báo Cấp Tài Khoản Tự Động (Tên đăng nhập & Mật khẩu) */}
+            {createdAccounts.length > 0 && (
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                            <Check className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                                Tạo Môn Sinh Thành Công!
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Hệ thống đã tự động cấp tài khoản đăng nhập nội bộ:
+                            </p>
+                        </div>
+
+                        <div className="max-h-64 overflow-y-auto space-y-2.5 text-left pr-1">
+                            {createdAccounts.map((acc, idx) => (
+                                <div
+                                    key={idx}
+                                    className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 text-xs border border-slate-200 dark:border-slate-700 space-y-2"
+                                >
+                                    <div className="border-b border-slate-200 dark:border-slate-700/60 pb-1.5">
+                                        <span className="text-[11px] text-slate-400 block">Môn sinh:</span>
+                                        <strong className="text-slate-900 dark:text-white text-sm">
+                                            {acc.fullName} ({acc.studentCode})
+                                        </strong>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div>
+                                            <span className="text-[11px] text-slate-400 block">Tên đăng nhập:</span>
+                                            <strong className="text-red-600 dark:text-red-400 font-mono text-sm">
+                                                {acc.username}
+                                            </strong>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-[11px] text-slate-400 block">Mật khẩu khởi tạo:</span>
+                                            <strong className="text-emerald-600 dark:text-emerald-400 font-mono text-sm">
+                                                {acc.password}
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setCreatedAccounts([]);
+                                router.push("/students");
+                                router.refresh();
+                            }}
+                            className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
+                        >
+                            Hoàn tất & Về danh sách
+                        </button>
                     </div>
                 </div>
             )}
