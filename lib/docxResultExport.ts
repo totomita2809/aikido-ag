@@ -61,6 +61,7 @@ export async function generateExamResultDocx(
 
     const tableHeader = new TableRow({
         tableHeader: true,
+        cantSplit: true,
         height: { value: 500, rule: HeightRule.ATLEAST },
         children: [
             createCell("STT", 600, AlignmentType.CENTER, true),
@@ -93,6 +94,7 @@ export async function generateExamResultDocx(
 
         tableRows.push(
             new TableRow({
+                cantSplit: true,
                 height: { value: 500, rule: HeightRule.ATLEAST },
                 children: [
                     createCell(String(i + 1), 600, AlignmentType.CENTER),
@@ -191,8 +193,10 @@ export async function generateExamResultDocx(
                             }),
                         ],
                     }),
+                    // Đã đổi sang keepNext để giữ liền khối chữ ký trên cùng 1 trang
                     new Paragraph({
                         alignment: AlignmentType.RIGHT,
+                        keepNext: true,
                         children: [
                             new TextRun({
                                 text: toNFD(signDateStr),
@@ -204,10 +208,11 @@ export async function generateExamResultDocx(
                     }),
                     new Paragraph({
                         alignment: AlignmentType.RIGHT,
+                        keepNext: true,
                         spacing: { before: 60, after: 1200 },
                         children: [
                             new TextRun({
-                                text: toNFD("HLV Trưởng      "),
+                                text: toNFD("HLV Trưởng     "),
                                 bold: true,
                                 size: 22,
                                 font: "Calibri",

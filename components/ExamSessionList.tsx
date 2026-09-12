@@ -32,6 +32,7 @@ export interface ExamSessionFull {
             dateOfBirth: Date | string | null;
             currentRank: string;
             dojo: string;
+            avatar: string | null;
         };
     }>;
 }

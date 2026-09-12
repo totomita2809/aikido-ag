@@ -448,24 +448,40 @@ export async function requestStudentProfileUpdate(formData: FormData) {
         throw new Error("Không tìm thấy thông tin môn sinh liên kết với tài khoản của bạn.");
     }
 
+    const fullName = formData.get("fullName") as string;
     const phone = formData.get("phone") as string;
     const parentPhone = formData.get("parentPhone") as string;
+    const email = formData.get("email") as string;
     const address = formData.get("address") as string;
+    const gender = formData.get("gender") as string;
+    const dateOfBirthStr = formData.get("dateOfBirth") as string;
+    const healthNote = formData.get("healthNote") as string;
     const avatar = formData.get("avatar") as string;
 
     const payload = {
+        fullName: fullName ? fullName.trim() : null,
         phone: phone ? phone.trim() : null,
         parentPhone: parentPhone ? parentPhone.trim() : null,
+        email: email ? email.trim() : null,
         address: address ? address.trim() : null,
+        gender: gender ? gender.trim() : "Nam",
+        dateOfBirth: parseVNDate(dateOfBirthStr),
+        healthNote: healthNote ? healthNote.trim() : null,
         avatar: avatar ? avatar.trim() : null,
     };
+
+    // Lấy thông tin HLV hiện tại (nếu có) để ghi nhận đúng người gửi
+    const currentCoach = await prisma.student.findFirst({
+        where: { user: { id: session.userId } },
+        select: { studentCode: true, fullName: true },
+    });
 
     await prisma.pendingStudentChange.create({
         data: {
             studentId: session.studentId,
             coachId: session.userId,
-            coachName: session.name || "Môn sinh",
-            coachCode: "STUDENT_SELF",
+            coachName: session.name || currentCoach?.fullName || "Môn sinh",
+            coachCode: session.role === "STUDENT" ? "" : (currentCoach?.studentCode || "HLV"),
             changedData: JSON.stringify(payload),
             status: "PENDING",
         },
@@ -484,10 +500,17 @@ export async function getStudentSelfProfile() {
     const student = await prisma.student.findUnique({
         where: { id: session.studentId },
         select: {
+            fullName: true,
             phone: true,
             parentPhone: true,
             address: true,
             avatar: true,
+            currentRank: true,
+            joinDate: true,
+            dateOfBirth: true,
+            gender: true,
+            email: true,
+            healthNote: true,
         },
     });
 

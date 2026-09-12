@@ -28,7 +28,6 @@ interface CandidateData {
     targetRank: string;
 }
 
-// Bảng mã chuyển đổi sang Unicode Tổ Hợp (NFD)
 function toNFD(str: string): string {
     return str ? str.normalize("NFD") : "";
 }
@@ -38,13 +37,12 @@ export async function generateExamDocx(
     examiners: ExaminerData[],
     candidates: CandidateData[]
 ) {
-    // Sắp xếp Examiners: HLV Trưởng luôn đầu, sau đó sắp xếp theo cấp đai giảm dần
     const sortedExaminers = [...examiners].sort((a, b) => a.order - b.order);
 
-    // 1. Tạo Bảng Ban Chấm Thi (Co gọn lại, bỏ width 100% percentage)
     const examinerRows = [
         new TableRow({
             tableHeader: true,
+            cantSplit: true,
             children: [
                 createHeaderCell("STT", 700),
                 createHeaderCell("HỌ VÀ TÊN", 3800),
@@ -55,6 +53,7 @@ export async function generateExamDocx(
         ...sortedExaminers.map(
             (ex, index) =>
                 new TableRow({
+                    cantSplit: true,
                     children: [
                         createBodyCell(String(index + 1), 700, AlignmentType.CENTER),
                         createBodyCell(toNFD(ex.fullName), 3800, AlignmentType.LEFT),
@@ -65,10 +64,10 @@ export async function generateExamDocx(
         ),
     ];
 
-    // 2. Tạo Bảng Danh Sách Môn Sinh Chấm Điểm (Dãn dòng cao hơn để ghi nhận xét và điểm)
     const candidateRows = [
         new TableRow({
             tableHeader: true,
+            cantSplit: true,
             children: [
                 createHeaderCell("STT", 600),
                 createHeaderCell("HỌ VÀ TÊN", 2800),
@@ -86,7 +85,8 @@ export async function generateExamDocx(
         ...candidates.map(
             (c, index) =>
                 new TableRow({
-                    height: { value: 600, rule: HeightRule.ATLEAST }, // Dãn dòng rộng rãi để ghi tay
+                    cantSplit: true,
+                    height: { value: 600, rule: HeightRule.ATLEAST },
                     children: [
                         createBodyCell(String(index + 1), 600, AlignmentType.CENTER),
                         createBodyCell(toNFD(c.fullName), 2800, AlignmentType.LEFT),
@@ -121,14 +121,13 @@ export async function generateExamDocx(
                     },
                 },
                 children: [
-                    // Tiêu đề đầu trang
                     new Paragraph({
                         alignment: AlignmentType.CENTER,
                         children: [
                             new TextRun({
                                 text: toNFD("BỘ MÔN VÕ AIKIDO"),
                                 bold: true,
-                                size: 24, // 12pt
+                                size: 24,
                                 font: "Calibri",
                             }),
                         ],
@@ -140,7 +139,7 @@ export async function generateExamDocx(
                             new TextRun({
                                 text: toNFD("PHIẾU CHẤM THI THĂNG ĐAI"),
                                 bold: true,
-                                size: 32, // 16pt
+                                size: 32,
                                 font: "Calibri",
                             }),
                         ],
@@ -157,8 +156,6 @@ export async function generateExamDocx(
                             }),
                         ],
                     }),
-
-                    // Ban chấm thi (Bỏ width percentage để co gọn lại)
                     new Paragraph({
                         spacing: { after: 100 },
                         children: [
@@ -173,8 +170,6 @@ export async function generateExamDocx(
                     new Table({
                         rows: examinerRows,
                     }),
-
-                    // Lưu ý
                     new Paragraph({
                         spacing: { before: 250, after: 100 },
                         children: [
@@ -188,14 +183,10 @@ export async function generateExamDocx(
                             }),
                         ],
                     }),
-
-                    // Bảng môn sinh
                     new Table({
                         width: { size: 100, type: WidthType.PERCENTAGE },
                         rows: candidateRows,
                     }),
-
-                    // Footer
                     new Paragraph({
                         spacing: { before: 350 },
                         children: [

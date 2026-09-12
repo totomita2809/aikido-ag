@@ -57,7 +57,7 @@ export default async function PromotionsPage({
         orderBy: { fullName: "asc" },
     });
 
-    // 1. Lấy danh sách các kỳ thi thăng đai đã tổ chức để hiển thị chi tiết
+    // 1. Lấy danh sách các kỳ thi thăng đai đã tổ chức để hiển thị chi tiết (đã bao gồm avatar của môn sinh)
     const examSessions = await (prisma as unknown as {
         examSession: {
             findMany: (args: unknown) => Promise<ExamSessionFull[]>;
@@ -76,6 +76,7 @@ export default async function PromotionsPage({
                             dateOfBirth: true,
                             currentRank: true,
                             dojo: true,
+                            avatar: true,
                         },
                     },
                 },
@@ -244,8 +245,8 @@ export default async function PromotionsPage({
                             <div
                                 key={s.id}
                                 className={`p-5 rounded-2xl border transition-all ${ev.isEligible
-                                        ? "bg-white dark:bg-slate-900 border-emerald-400 dark:border-emerald-600/80 shadow-md ring-1 ring-emerald-400/30"
-                                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm"
+                                    ? "bg-white dark:bg-slate-900 border-emerald-400 dark:border-emerald-600/80 shadow-md ring-1 ring-emerald-400/30"
+                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm"
                                     }`}
                             >
                                 <div className="flex items-start justify-between gap-3">

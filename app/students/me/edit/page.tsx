@@ -17,10 +17,17 @@ import { requestStudentProfileUpdate, getStudentSelfProfile } from "@/app/action
 
 export default function StudentSelfEditPage() {
     const router = useRouter();
+    const [fullName, setFullName] = useState("");
     const [phone, setPhone] = useState("");
     const [parentPhone, setParentPhone] = useState("");
+    const [email, setEmail] = useState("");
     const [address, setAddress] = useState("");
+    const [gender, setGender] = useState("Nam");
+    const [dateOfBirth, setDateOfBirth] = useState("");
+    const [healthNote, setHealthNote] = useState("");
     const [avatar, setAvatar] = useState("");
+    const [currentRank, setCurrentRank] = useState("");
+    const [joinDate, setJoinDate] = useState("");
 
     const [initialLoading, setInitialLoading] = useState(true);
     const [loading, setLoading] = useState(false);
@@ -33,10 +40,23 @@ export default function StudentSelfEditPage() {
             try {
                 const profile = await getStudentSelfProfile();
                 if (profile) {
+                    if (profile.fullName) setFullName(profile.fullName);
                     if (profile.phone) setPhone(profile.phone);
                     if (profile.parentPhone) setParentPhone(profile.parentPhone);
+                    if (profile.email) setEmail(profile.email);
                     if (profile.address) setAddress(profile.address);
+                    if (profile.gender) setGender(profile.gender);
+                    if (profile.healthNote) setHealthNote(profile.healthNote);
                     if (profile.avatar) setAvatar(profile.avatar);
+                    if (profile.currentRank) setCurrentRank(profile.currentRank);
+                    if (profile.dateOfBirth) {
+                        const dobStr = new Date(profile.dateOfBirth).toISOString().split("T")[0];
+                        setDateOfBirth(dobStr);
+                    }
+                    if (profile.joinDate) {
+                        const dateStr = new Date(profile.joinDate).toISOString().split("T")[0];
+                        setJoinDate(dateStr);
+                    }
                 }
             } catch (err: unknown) {
                 console.error("Lỗi khi nạp dữ liệu môn sinh:", err);
@@ -67,15 +87,20 @@ export default function StudentSelfEditPage() {
         reader.readAsDataURL(file);
     };
 
-       const handleSubmit = async (e: React.SyntheticEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         setLoading(true);
         setErrorMsg(null);
 
         const formData = new FormData();
+        if (fullName.trim()) formData.append("fullName", fullName.trim());
         if (phone.trim()) formData.append("phone", phone.trim());
         if (parentPhone.trim()) formData.append("parentPhone", parentPhone.trim());
+        if (email.trim()) formData.append("email", email.trim());
         if (address.trim()) formData.append("address", address.trim());
+        if (gender.trim()) formData.append("gender", gender.trim());
+        if (dateOfBirth.trim()) formData.append("dateOfBirth", dateOfBirth.trim());
+        if (healthNote.trim()) formData.append("healthNote", healthNote.trim());
         if (avatar.trim()) formData.append("avatar", avatar.trim());
 
         try {
@@ -100,7 +125,7 @@ export default function StudentSelfEditPage() {
     }
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6 pb-12">
             <div className="flex items-center justify-between">
                 <Link
                     href="/students/me"
@@ -117,7 +142,7 @@ export default function StudentSelfEditPage() {
                         Yêu cầu chỉnh sửa thông tin cá nhân
                     </h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Theo quy định của võ đường Aikido An Giang, mọi thay đổi thông tin liên lạc và hình ảnh cần được HLV Trưởng xét duyệt.
+                        Cập nhật thông tin cá nhân của bạn. Trừ Cấp đai và Ngày nhập môn, các thông tin khác sẽ được HLV Trưởng xét duyệt trước khi áp dụng.
                     </p>
                 </div>
 
@@ -130,12 +155,12 @@ export default function StudentSelfEditPage() {
                 <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 rounded-xl flex items-start space-x-3 text-amber-800 dark:text-amber-300 text-xs">
                     <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
                     <div>
-                        <span className="font-bold">Lưu ý quy định:</span> Sau khi bấm lưu, thông tin của bạn sẽ được chuyển về bộ phận quản lý để kiểm tra và xử lý trong vòng 48 tiếng.
+                        <span className="font-bold">Lưu ý quy trình duyệt:</span> HLV Trưởng sẽ xác minh lại số điện thoại phụ huynh trước khi phê duyệt để phòng trường hợp cung cấp số ảo.
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Khối Ảnh thẻ môn sinh (đồng bộ với form thêm mới) */}
+                    {/* Khối Ảnh thẻ môn sinh */}
                     <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
                         <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center shrink-0">
                             {avatar ? (
@@ -182,26 +207,82 @@ export default function StudentSelfEditPage() {
 
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            Số điện thoại cá nhân mới
+                            Họ và tên đầy đủ mới
                         </label>
                         <input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="09xxxxxxxx"
+                            type="text"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="Nhập họ và tên đầy đủ"
                             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                         />
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                Ngày sinh
+                            </label>
+                            <input
+                                type="date"
+                                value={dateOfBirth}
+                                onChange={(e) => setDateOfBirth(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                Giới tính
+                            </label>
+                            <select
+                                value={gender}
+                                onChange={(e) => setGender(e.target.value)}
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            >
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                Số điện thoại cá nhân mới
+                            </label>
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="09xxxxxxxx"
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                Số điện thoại phụ huynh mới
+                            </label>
+                            <input
+                                type="tel"
+                                value={parentPhone}
+                                onChange={(e) => setParentPhone(e.target.value)}
+                                placeholder="09xxxxxxxx"
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
+                        </div>
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            Số điện thoại phụ huynh mới
+                            Email liên hệ mới
                         </label>
                         <input
-                            type="tel"
-                            value={parentPhone}
-                            onChange={(e) => setParentPhone(e.target.value)}
-                            placeholder="09xxxxxxxx"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="example@gmail.com"
                             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                         />
                     </div>
@@ -217,6 +298,46 @@ export default function StudentSelfEditPage() {
                             placeholder="Địa chỉ cư trú hiện tại"
                             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                         />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            Tình trạng sức khỏe & Lưu ý bệnh lý mới
+                        </label>
+                        <textarea
+                            value={healthNote}
+                            onChange={(e) => setHealthNote(e.target.value)}
+                            rows={2}
+                            placeholder="Tiền sử bệnh lý, dị ứng hoặc chấn thương cũ..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                        />
+                    </div>
+
+                    {/* Các trường bị khóa (Không cho phép môn sinh tự sửa): Cấp đai và Ngày nhập môn */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                Cấp đai hiện tại <span className="text-xs text-red-500">(Không thể tự đổi)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={currentRank}
+                                disabled
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                Ngày gia nhập võ đường <span className="text-xs text-red-500">(Không thể tự đổi)</span>
+                            </label>
+                            <input
+                                type="date"
+                                value={joinDate}
+                                disabled
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed"
+                            />
+                        </div>
                     </div>
 
                     <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-800">

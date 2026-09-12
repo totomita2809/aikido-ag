@@ -136,7 +136,17 @@ export async function updateExamSession(data: {
             deleteMany: (args: { where: { examSessionId: string } }) => Promise<unknown>;
         };
         examCandidate: {
-            deleteMany: (args: { where: { examSessionId: string } }) => Promise<unknown>;
+            findMany: (args: { where: { examSessionId: string } }) => Promise<Array<{ id: string; studentId: string }>>;
+            deleteMany: (args: { where: { id: { in: string[] } } }) => Promise<unknown>;
+            createMany: (args: {
+                data: Array<{
+                    examSessionId: string;
+                    studentId: string;
+                    targetRank: string;
+                    isSpecial: boolean;
+                    specialReason?: string;
+                }>;
+            }) => Promise<unknown>;
         };
         examSession: {
             update: (args: {
@@ -154,26 +164,53 @@ export async function updateExamSession(data: {
                             order: number;
                         }>;
                     };
-                    candidates: {
-                        create: Array<{
-                            studentId: string;
-                            targetRank: string;
-                            isSpecial: boolean;
-                            specialReason?: string;
-                        }>;
-                    };
                 };
             }) => Promise<{ id: string }>;
         };
     };
 
+    // 1. Đồng bộ Giám khảo (Examiners)
     await db.examExaminer.deleteMany({
         where: { examSessionId: data.examId },
     });
-    await db.examCandidate.deleteMany({
+
+    // 2. Đồng bộ Thí sinh (Candidates) thông minh: Giữ lại bản ghi cũ để bảo toàn điểm số, thêm mới hoặc xóa bớt chính xác
+    const existingCandidates = await db.examCandidate.findMany({
         where: { examSessionId: data.examId },
     });
 
+    const existingMap = new Map(existingCandidates.map((c) => [c.studentId, c.id]));
+    const incomingStudentIds = new Set(data.candidates.map((c) => c.studentId));
+
+    // Tìm các candidate cần xóa khỏi kỳ thi
+    const candidateIdsToRemove = existingCandidates
+        .filter((c) => !incomingStudentIds.has(c.studentId))
+        .map((c) => c.id);
+
+    if (candidateIdsToRemove.length > 0) {
+        await db.examCandidate.deleteMany({
+            where: { id: { in: candidateIdsToRemove } },
+        });
+    }
+
+    // Tìm các candidate mới cần thêm vào form nhập điểm
+    const candidatesToAdd = data.candidates
+        .filter((c) => !existingMap.has(c.studentId))
+        .map((c) => ({
+            examSessionId: data.examId,
+            studentId: c.studentId,
+            targetRank: c.targetRank,
+            isSpecial: c.isSpecial,
+            specialReason: c.specialReason,
+        }));
+
+    if (candidatesToAdd.length > 0) {
+        await db.examCandidate.createMany({
+            data: candidatesToAdd,
+        });
+    }
+
+    // 3. Cập nhật thông tin chung kỳ thi
     await db.examSession.update({
         where: { id: data.examId },
         data: {
@@ -187,14 +224,6 @@ export async function updateExamSession(data: {
                     rank: ex.rank,
                     role: ex.role,
                     order: ex.order,
-                })),
-            },
-            candidates: {
-                create: data.candidates.map((cd) => ({
-                    studentId: cd.studentId,
-                    targetRank: cd.targetRank,
-                    isSpecial: cd.isSpecial,
-                    specialReason: cd.specialReason,
                 })),
             },
         },
@@ -342,7 +371,6 @@ export async function saveExamScoresWithCarryOver(data: {
         );
 
         if (c.overflowScore > 0) {
-            // Môn sinh có điểm vượt trần 10 -> bảo lưu sang kỳ thi sau
             queries.push(
                 db.student.update({
                     where: { id: c.studentId },
@@ -353,7 +381,6 @@ export async function saveExamScoresWithCarryOver(data: {
                 })
             );
         } else if (c.usedBonusScore > 0) {
-            // Đã dùng điểm bảo lưu cũ ở kỳ này -> hoàn tất và làm mới về 0
             queries.push(
                 db.student.update({
                     where: { id: c.studentId },
@@ -378,7 +405,7 @@ export async function finalizeExamWithBeltPromotion(data: {
         candidateId: string;
         studentId: string;
         targetRank: string;
-        assignedRank?: string; // Cấp đai thực tế HLV Trưởng chọn phong (tối đa Nâu 3)
+        assignedRank?: string;
         isPassed: boolean;
         finalScore: number;
         titleHonor?: string;

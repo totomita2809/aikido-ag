@@ -43,6 +43,7 @@ interface Props {
             currentRank: string;
             dojo: string;
             phone: string | null;
+            parentPhone: string | null;
             email: string | null;
             gender: string | null;
             dateOfBirth: Date | null;
@@ -56,6 +57,23 @@ interface Props {
     }>;
 }
 
+const ALL_STUDENT_KEYS = [
+    "fullName",
+    "studentCode",
+    "currentRank",
+    "dojo",
+    "dateOfBirth",
+    "gender",
+    "phone",
+    "parentPhone",
+    "email",
+    "joinDate",
+    "status",
+    "title",
+    "address",
+    "healthNote",
+] as const;
+
 const FIELD_LABELS: Record<string, string> = {
     fullName: "Họ và tên",
     studentCode: "Mã môn sinh",
@@ -64,6 +82,7 @@ const FIELD_LABELS: Record<string, string> = {
     dateOfBirth: "Ngày sinh",
     gender: "Giới tính",
     phone: "Số điện thoại",
+    parentPhone: "Số điện thoại phụ huynh",
     email: "Địa chỉ Email",
     joinDate: "Ngày nhập môn",
     status: "Trạng thái tập luyện",
@@ -140,6 +159,12 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
     const [rejectModal, setRejectModal] = useState<{ id: string; type: "AVATAR" | "CREATION" | "EDIT" } | null>(null);
     const [rejectReason, setRejectReason] = useState("");
 
+    const [actionResultModal, setActionResultModal] = useState<{
+        type: "SUCCESS" | "ERROR";
+        title: string;
+        message: string;
+    } | null>(null);
+
     const [selectedTitles, setSelectedTitles] = useState<Record<string, string>>({});
     const [activePermissions, setActivePermissions] = useState<Record<string, Record<string, string>>>({});
 
@@ -159,16 +184,18 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
 
     const confirmReject = () => {
         if (!rejectModal) return;
-        startTransition(async () => {
-            if (rejectModal.type === "AVATAR") {
-                await handleAvatarApproval(rejectModal.id, "REJECT", rejectReason);
-            } else if (rejectModal.type === "CREATION") {
-                await handleCreationApproval(rejectModal.id, "REJECT", rejectReason);
-            } else {
-                await handleEditApproval(rejectModal.id, "REJECT", rejectReason);
-            }
-            setRejectModal(null);
-            setRejectReason("");
+        startTransition(() => {
+            void (async () => {
+                if (rejectModal.type === "AVATAR") {
+                    await handleAvatarApproval(rejectModal.id, "REJECT", rejectReason);
+                } else if (rejectModal.type === "CREATION") {
+                    await handleCreationApproval(rejectModal.id, "REJECT", rejectReason);
+                } else {
+                    await handleEditApproval(rejectModal.id, "REJECT", rejectReason);
+                }
+                setRejectModal(null);
+                setRejectReason("");
+            })();
         });
     };
 
@@ -246,7 +273,11 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                         </button>
                                         <button
                                             disabled={isPending}
-                                            onClick={() => startTransition(() => handleAvatarApproval(st.id, "APPROVE"))}
+                                            onClick={() => {
+                                                startTransition(() => {
+                                                    void handleAvatarApproval(st.id, "APPROVE");
+                                                });
+                                            }}
                                             className="flex-1 py-1.5 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition-colors"
                                         >
                                             Duyệt
@@ -340,8 +371,8 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                                                     value={curVal === "NONE" ? "VIEW" : curVal}
                                                                     onChange={(e) => handlePermChange(st.id, k, e.target.value, st.coachPermission)}
                                                                     className={`w-full mt-1 px-2 py-1 text-xs font-bold rounded border ${curVal === "EDIT"
-                                                                            ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-slate-800"
-                                                                            : "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800"
+                                                                        ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-slate-800"
+                                                                        : "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800"
                                                                         }`}
                                                                 >
                                                                     <option value="VIEW">Xem</option>
@@ -364,16 +395,16 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             </button>
                                             <button
                                                 disabled={isPending}
-                                                onClick={() =>
-                                                    startTransition(() =>
-                                                        handleCreationApproval(
+                                                onClick={() => {
+                                                    startTransition(() => {
+                                                        void handleCreationApproval(
                                                             st.id,
                                                             "APPROVE",
                                                             undefined,
                                                             isShidoin ? activePermissions[st.id] ?? st.coachPermission ?? undefined : undefined
-                                                        )
-                                                    )
-                                                }
+                                                        );
+                                                    });
+                                                }}
                                                 className="px-4 py-2 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-semibold inline-flex items-center space-x-1.5 transition-colors"
                                             >
                                                 <Check className="w-3.5 h-3.5" />
@@ -396,10 +427,10 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                     ) : (
                         <div className="space-y-4">
                             {pendingEdits.map((item) => {
-                                const parsed = JSON.parse(item.changedData);
+                                const parsed = JSON.parse(item.changedData) as Record<string, unknown>;
                                 const currentTitle = selectedTitles[item.id] ?? (parsed.title || item.student.title || "MEMBER");
                                 const isShidoin = currentTitle === "SHIDOIN";
-                                const coachSavedPerms = parsed.permissions || item.student.coachPermission;
+                                const coachSavedPerms = (parsed.permissions as Record<string, string>) || item.student.coachPermission;
 
                                 return (
                                     <div key={item.id} className="p-5 border rounded-xl bg-white dark:bg-slate-900 space-y-4 shadow-xs">
@@ -414,7 +445,9 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             <div className="text-xs bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1">
                                                 <div className="flex items-center space-x-1.5 text-slate-700 dark:text-slate-300 font-medium">
                                                     <User className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                                    <span>HLV gửi: <strong>{item.coachName}</strong> ({item.coachCode || "HLV"})</span>
+                                                    <span>
+                                                        {item.coachCode ? "HLV gửi:" : "Môn sinh gửi:"} <strong>{item.coachName}</strong> ({item.coachCode || "STUDENT_SELF"})
+                                                    </span>
                                                 </div>
                                                 <div className="flex items-center space-x-1.5 text-slate-400">
                                                     <Clock className="w-3.5 h-3.5 shrink-0" />
@@ -423,7 +456,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             </div>
                                         </div>
 
-                                        {/* Bảng so sánh đối chiếu: Hồ sơ gốc vs Đề xuất sau chỉnh sửa */}
+                                        {/* Bảng so sánh đối chiếu: Hiển thị ĐẦY ĐỦ toàn bộ thông tin gốc, trường nào đổi mới sẽ so sánh */}
                                         <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
                                             <div className="grid grid-cols-12 bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-200 p-2.5 border-b border-slate-200 dark:border-slate-800">
                                                 <div className="col-span-3">Trường thông tin</div>
@@ -434,30 +467,33 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             </div>
 
                                             <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                                                {Object.entries(parsed)
-                                                    .filter(([k]) => k !== "permissions")
-                                                    .map(([key, newVal]) => {
-                                                        const label = FIELD_LABELS[key] || key;
-                                                        const origRaw = (item.student as Record<string, unknown>)[key];
-                                                        const origDisplay = formatVNValue(key, origRaw);
-                                                        const newDisplay = formatVNValue(key, newVal);
-                                                        const isChanged = origDisplay !== newDisplay;
+                                                {ALL_STUDENT_KEYS.map((key) => {
+                                                    const label = FIELD_LABELS[key] || key;
+                                                    const origRaw = (item.student as Record<string, unknown>)[key];
+                                                    const origDisplay = formatVNValue(key, origRaw);
 
-                                                        return (
-                                                            <div
-                                                                key={key}
-                                                                className={`grid grid-cols-12 p-2.5 items-center transition-colors ${isChanged
-                                                                        ? "bg-amber-50/40 dark:bg-amber-950/20 font-semibold"
-                                                                        : "hover:bg-slate-50 dark:hover:bg-slate-800/30"
-                                                                    }`}
-                                                            >
-                                                                <div className="col-span-3 text-slate-600 dark:text-slate-400 font-medium">
-                                                                    {label}
-                                                                </div>
-                                                                <div className="col-span-4 text-slate-500 dark:text-slate-400 font-mono">
-                                                                    {origDisplay}
-                                                                </div>
-                                                                <div className="col-span-5 flex items-center space-x-2 font-mono">
+                                                    const hasNewVal = Object.prototype.hasOwnProperty.call(parsed, key);
+                                                    const newVal = hasNewVal ? parsed[key] : origRaw;
+                                                    const newDisplay = formatVNValue(key, newVal);
+
+                                                    const isChanged = hasNewVal && origDisplay !== newDisplay;
+
+                                                    return (
+                                                        <div
+                                                            key={key}
+                                                            className={`grid grid-cols-12 p-2.5 items-center transition-colors ${isChanged
+                                                                ? "bg-amber-50/40 dark:bg-amber-950/20 font-semibold"
+                                                                : "hover:bg-slate-50 dark:hover:bg-slate-800/30"
+                                                                }`}
+                                                        >
+                                                            <div className="col-span-3 text-slate-600 dark:text-slate-400 font-medium">
+                                                                {label}
+                                                            </div>
+                                                            <div className="col-span-4 text-slate-500 dark:text-slate-400 font-mono">
+                                                                {origDisplay}
+                                                            </div>
+                                                            <div className="col-span-5 flex flex-col font-mono">
+                                                                <div className="flex items-center space-x-2">
                                                                     {isChanged ? (
                                                                         <>
                                                                             <ArrowRight className="w-3 h-3 text-amber-600 shrink-0" />
@@ -469,9 +505,16 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                                                         <span className="text-slate-700 dark:text-slate-300">{newDisplay}</span>
                                                                     )}
                                                                 </div>
+
+                                                                {key === "parentPhone" && isChanged && (
+                                                                    <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-lg text-[11px] text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
+                                                                        ⚠️ <strong>Lưu ý xác minh:</strong> Hãy liên hệ trực tiếp hoặc xác minh lại với phụ huynh trước khi duyệt số điện thoại phụ huynh mới để phòng trường hợp môn sinh điền số ảo!
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        );
-                                                    })}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
 
@@ -510,16 +553,16 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                                 </div>
                                                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
                                                     {Object.entries(PERMISSION_LABELS).map(([k, label]) => {
-                                                        const curVal = activePermissions[item.id]?.[k] ?? (coachSavedPerms?.[k] || "VIEW");
+                                                        const curVal = activePermissions[item.id]?.[k] ?? ((coachSavedPerms as Record<string, string>)?.[k] || "VIEW");
                                                         return (
                                                             <div key={k} className="text-xs">
                                                                 <span className="block text-slate-600 dark:text-slate-400 text-[11px] font-medium truncate">{label}</span>
                                                                 <select
                                                                     value={curVal === "NONE" ? "VIEW" : curVal}
-                                                                    onChange={(e) => handlePermChange(item.id, k, e.target.value, coachSavedPerms)}
+                                                                    onChange={(e) => handlePermChange(item.id, k, e.target.value, coachSavedPerms as Record<string, string>)}
                                                                     className={`w-full mt-1 px-2 py-1 text-xs font-bold rounded border ${curVal === "EDIT"
-                                                                            ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-slate-800"
-                                                                            : "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800"
+                                                                        ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-slate-800"
+                                                                        : "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800"
                                                                         }`}
                                                                 >
                                                                     <option value="VIEW">Xem</option>
@@ -542,17 +585,34 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             </button>
                                             <button
                                                 disabled={isPending}
-                                                onClick={() =>
-                                                    startTransition(() =>
-                                                        handleEditApproval(
-                                                            item.id,
-                                                            "APPROVE",
-                                                            undefined,
-                                                            isShidoin ? activePermissions[item.id] ?? coachSavedPerms ?? undefined : undefined
-                                                        )
-                                                    )
-                                                }
-                                                className="px-4 py-2 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-semibold inline-flex items-center space-x-1.5 transition-colors"
+                                                onClick={() => {
+                                                    startTransition(() => {
+                                                        void (async () => {
+                                                            const res = await handleEditApproval(
+                                                                item.id,
+                                                                "APPROVE",
+                                                                undefined,
+                                                                isShidoin ? activePermissions[item.id] ?? (coachSavedPerms as Record<string, string>) ?? undefined : undefined
+                                                            );
+
+                                                            if (res && res.success) {
+                                                                setActionResultModal({
+                                                                    type: "SUCCESS",
+                                                                    title: "Phê duyệt thành công!",
+                                                                    message: "Đã kiểm tra toàn bộ trường dữ liệu trên Database. Mọi thông tin đã được đồng bộ chính xác.",
+                                                                });
+                                                                setTimeout(() => setActionResultModal(null), 2000);
+                                                            } else {
+                                                                setActionResultModal({
+                                                                    type: "ERROR",
+                                                                    title: "Lỗi đồng bộ Database!",
+                                                                    message: res?.errors?.join("\n") || "Không thể lưu dữ liệu vào cơ sở dữ liệu.",
+                                                                });
+                                                            }
+                                                        })();
+                                                    });
+                                                }}
+                                                className="px-4 py-2 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
                                             >
                                                 <Check className="w-3.5 h-3.5" />
                                                 <span>Duyệt sửa đổi</span>
@@ -603,6 +663,31 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                 Xác nhận từ chối
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Thông báo kết quả kiểm tra Database thực tế */}
+            {actionResultModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className={`bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border ${actionResultModal.type === "SUCCESS" ? "border-emerald-500" : "border-red-500"} animate-in fade-in zoom-in-95 duration-150`}>
+                        <div className="space-y-1">
+                            <h3 className={`text-base font-black uppercase tracking-tight ${actionResultModal.type === "SUCCESS" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                                {actionResultModal.title}
+                            </h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line font-mono bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                                {actionResultModal.message}
+                            </p>
+                        </div>
+                        {actionResultModal.type === "ERROR" && (
+                            <button
+                                type="button"
+                                onClick={() => setActionResultModal(null)}
+                                className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
+                            >
+                                Đã hiểu & Xác nhận (Chụp màn hình báo IT)
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

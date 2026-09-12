@@ -4,6 +4,7 @@ import Link from "next/link";
 import { User, LogOut, ShieldCheck } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import type { SessionPayload } from "@/lib/auth";
+import { getTitleLabel } from "@/lib/constants";
 
 interface NavbarAuthProps {
     session: SessionPayload | null;
@@ -36,6 +37,9 @@ export default function NavbarAuth({ session, isMobile = false, onItemClick }: N
         );
     }
 
+    // Sử dụng getTitleLabel để hiển thị chuẩn xác nhãn chức vụ/tước vị từ hằng số chung
+    const displayTitle = getTitleLabel(session.role);
+
     if (isMobile) {
         return (
             <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
@@ -45,7 +49,7 @@ export default function NavbarAuth({ session, isMobile = false, onItemClick }: N
                     </p>
                     <span className="text-xs text-amber-600 dark:text-amber-400 font-medium inline-flex items-center gap-1 mt-0.5">
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        <span>{session.role === "SUPER_ADMIN" ? "HLV Trưởng" : "HLV"}</span>
+                        <span>{displayTitle}</span>
                     </span>
                 </div>
                 <form action={logout}>
@@ -70,7 +74,7 @@ export default function NavbarAuth({ session, isMobile = false, onItemClick }: N
                 </span>
                 <span className="inline-flex items-center justify-end space-x-1 text-[11px] font-medium text-amber-600 dark:text-amber-400 mt-0.5">
                     <ShieldCheck className="w-3 h-3" />
-                    <span>{session.role === "SUPER_ADMIN" ? "HLV Trưởng" : "HLV"}</span>
+                    <span>{displayTitle}</span>
                 </span>
             </div>
             <form action={logout}>
