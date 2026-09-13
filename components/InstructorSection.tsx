@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { INSTRUCTOR_GROUPS } from "@/lib/constants";
 
 interface Instructor {
     dojo: string;
@@ -14,6 +15,8 @@ interface Instructor {
     code: string | number;
     avatar?: string;
 }
+
+const FALLBACK_INSTRUCTORS: Instructor[] = (INSTRUCTOR_GROUPS.anGiang?.instructors as Instructor[]) || [];
 
 function cleanUnicode(str: string | null | undefined): string {
     if (!str) return "";
@@ -178,39 +181,53 @@ function InstructorCard({ instructor }: { instructor: Instructor }) {
 }
 
 export default function InstructorSection() {
+    console.log("FALLBACK CHECK:", FALLBACK_INSTRUCTORS);
     const [groupData, setGroupData] = useState<{
         title: string;
         subtitle: string;
         instructors: Instructor[];
     }>({
-        title: "Đội ngũ Aikido An Giang",
-        subtitle: "Những người dẫn dắt và phát triển phong trào võ đạo tại tỉnh nhà.",
-        instructors: [],
+        title: INSTRUCTOR_GROUPS.anGiang?.title || "Đội ngũ Aikido An Giang",
+        subtitle: INSTRUCTOR_GROUPS.anGiang?.subtitle || "Những người dẫn dắt và phát triển phong trào võ đạo tại tỉnh nhà.",
+        instructors: FALLBACK_INSTRUCTORS,
     });
     const [currentIndex, setCurrentIndex] = useState<number>(0);
 
     useEffect(() => {
+        let isMounted = true;
         async function fetchAnGiangData(): Promise<void> {
             try {
-                const res: Response = await fetch('/api/instructors/an-giang');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+                const res: Response = await fetch('/api/instructors/an-giang', {
+                    signal: controller.signal,
+                });
+                clearTimeout(timeoutId);
+
                 if (res.ok) {
-                    const data: {
-                        title: string;
-                        subtitle: string;
-                        instructors: Instructor[];
-                    } = await res.json();
-                    if (data?.instructors) {
-                        setGroupData(data);
+                    const data = await res.json();
+                    if (isMounted && data?.instructors && data.instructors.length > 0) {
+                        setGroupData((prev) => ({
+                            ...prev,
+                            title: data.title || prev.title,
+                            subtitle: data.subtitle || prev.subtitle,
+                            instructors: data.instructors,
+                        }));
                     }
                 }
             } catch (err: unknown) {
-                console.error("Lỗi fetch HLV An Giang:", err);
+                console.warn("API HLV chậm/timeout, giữ nguyên fallback:", err);
             }
         }
         fetchAnGiangData();
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
-    const instructorsList: Instructor[] = groupData.instructors || [];
+
+    const instructorsList: Instructor[] = groupData.instructors.length > 0 ? groupData.instructors : FALLBACK_INSTRUCTORS;
 
     useEffect(() => {
         if (instructorsList.length <= 2) return;
@@ -247,7 +264,7 @@ export default function InstructorSection() {
                             Đội ngũ giảng dạy chuyên môn
                         </h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Tinh thần võ đạo nội bộ Aikido An Giang.
+                            
                         </p>
                     </div>
                 </div>
@@ -286,7 +303,7 @@ export default function InstructorSection() {
 
             {instructorsList.length === 0 ? (
                 <div className="text-center py-12 text-sm text-stone-500 dark:text-stone-400">
-                    Đang đồng bộ dữ liệu huấn luyện viên nội bộ...
+                    Chưa có dữ liệu huấn luyện viên hiển thị.
                 </div>
             ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 transition-all duration-500">
