@@ -4,6 +4,9 @@ import { Shield, Calendar, Users, MapPin, Award, Phone, Mail, ExternalLink } fro
 import { TRAINING_SCHEDULES, DOJO_CONTACT_INFO } from "@/lib/constants";
 import HomeBannerCarousel from "@/components/HomeBannerCarousel";
 import ExamDualCarousel from "@/components/ExamDualCarousel";
+// Sửa dòng 7 trong app/page.tsx thành:
+import InstructorSection from "@/components/InstructorSection";
+
 
 export default async function PublicHomePage() {
     const session = await getSession();
@@ -15,36 +18,45 @@ export default async function PublicHomePage() {
 
             {/* 2. CORE VALUES */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-                    <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
-                        <Shield className="w-5 h-5" />
+                <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-red-500/50 dark:hover:border-red-500/50 transition-all duration-300 group">
+                    <div className="flex items-center space-x-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center font-bold shrink-0 group-hover:scale-110 transition-transform">
+                            <Shield className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">Tự vệ hiệu quả</h3>
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">Tự vệ hiệu quả</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Sử dụng đòn thế linh hoạt để hóa giải lực tấn công, không dùng sức chống lại sức.
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-                    <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
-                        <Users className="w-5 h-5" />
+                <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-red-500/50 dark:hover:border-red-500/50 transition-all duration-300 group">
+                    <div className="flex items-center space-x-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center font-bold shrink-0 group-hover:scale-110 transition-transform">
+                            <Users className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">Môi trường gắn kết</h3>
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">Môi trường gắn kết</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Tập thể đoàn kết, hỗ trợ lẫn nhau trong luyện tập và đời sống, phù hợp cho mọi lứa tuổi.
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
-                    <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center font-bold">
-                        <Award className="w-5 h-5" />
+                <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-red-500/50 dark:hover:border-red-500/50 transition-all duration-300 group">
+                    <div className="flex items-center space-x-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center font-bold shrink-0 group-hover:scale-110 transition-transform">
+                            <Award className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">Hệ thống đai chuẩn</h3>
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">Hệ thống đai chuẩn</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Chương trình đào tạo và xét thăng cấp đai minh bạch theo chuẩn liên đoàn Aikido.
                     </p>
                 </div>
             </section>
+
+            {/* Phần Đội ngũ giảng dạy */}
+            <InstructorSection />
 
             {/* 3. EXAM DUAL CAROUSEL (Hiển thị ảnh kỳ thi thăng đai ngày 06-09-2026: Ngang & Dọc song song) */}
             <ExamDualCarousel />
@@ -63,7 +75,7 @@ export default async function PublicHomePage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     {TRAINING_SCHEDULES.map((schedule, idx) => (
-                        <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3 flex flex-col justify-between">
+                        <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3 flex flex-col justify-between hover:shadow-md hover:border-red-500/40 dark:hover:border-red-500/40 transition-all duration-300">
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <span className="px-2.5 py-1 rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-[10px]">

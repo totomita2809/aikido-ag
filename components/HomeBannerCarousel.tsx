@@ -29,7 +29,7 @@ const banners: BannerItem[] = [
         primaryButtonText: "Đăng nhập hệ thống nội bộ",
         primaryButtonLink: "/login",
         secondaryButtonText: "Xem lịch tập luyện",
-        secondaryButtonLink: "/schedule",
+        secondaryButtonLink: "#schedule",
     },
     {
         id: 2,
@@ -38,22 +38,22 @@ const banners: BannerItem[] = [
         titleLine1: "KỶ LUẬT & ĐOÀN KẾT",
         titleLine2: "PHÁT TRIỂN MỖI NGÀY",
         description: "Cùng nhau luyện tập trên thảm, nâng cao thể lực, tinh thần võ sĩ đạo và xây dựng cộng đồng Aikido vững mạnh tại An Giang.",
-        primaryButtonText: "Đang xây dựng...",//"Đăng ký môn sinh",
-        primaryButtonLink: "#",//"/register",
-        secondaryButtonText: "Đang xây dựng...", //"Tìm hiểu thêm",
-        secondaryButtonLink: "#"//"/about",
+        primaryButtonText: "Đang xây dựng...", //"Đăng ký môn sinh",
+        primaryButtonLink: "#", //"/register",
+        secondaryButtonText: "Đang xây dựng...", //"Tìm hiểu thêm",
+        secondaryButtonLink: "#", //"/about",
     },
     {
         id: 3,
         image: "/banner/banner-3.jpg",
         tag: "KỲ THI THĂNG CẤP ĐAI",
-        titleLine1: "CHINH PHỤC CẤP BẬC",
+        titleLine1: "CHINH PHỤC CẤP BẬC",
         titleLine2: "VƯƠNG TỚI ĐAI ĐEN",
         description: "Hệ thống quản lý lộ trình học tập, xét duyệt điều kiện thi thăng đai minh bạch, chính xác và chuyên nghiệp.",
-        primaryButtonText: "Đang xây dựng...", //"Xem lịch thi đai",
-        primaryButtonLink: "#",//"/promotions",
-        secondaryButtonText: "Đang xây dựng...",// "Quy định đai",
-        secondaryButtonLink: "#"//"/rules",
+        primaryButtonText: "Đang xây dựng...", //"Xem lịch thi đai",
+        primaryButtonLink: "#", //"/promotions",
+        secondaryButtonText: "Đang xây dựng...", // "Quy định đai",
+        secondaryButtonLink: "#", //"/rules",
     },
 ];
 
@@ -123,20 +123,39 @@ export default function HomeBannerCarousel() {
                                 </p>
 
                                 <div className="flex flex-wrap items-center gap-3 pt-2">
-                                    <Link
-                                        href={banner.primaryButtonLink}
-                                        className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center space-x-2 cursor-pointer"
-                                    >
-                                        <span>{banner.primaryButtonText}</span>
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
+                                    {banner.primaryButtonLink === "#" ? (
+                                        <span className="px-6 py-3 bg-slate-200 dark:bg-slate-800 text-slate-400 font-bold text-xs sm:text-sm rounded-xl cursor-not-allowed opacity-75 border border-slate-300 dark:border-slate-700">
+                                            {banner.primaryButtonText}
+                                        </span>
+                                    ) : (
+                                        <Link
+                                            href={banner.primaryButtonLink}
+                                            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md flex items-center space-x-2 cursor-pointer"
+                                        >
+                                            <span>{banner.primaryButtonText}</span>
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    )}
 
-                                    <Link
-                                        href={banner.secondaryButtonLink}
-                                        className="px-6 py-3 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-xs cursor-pointer"
-                                    >
-                                        <span>{banner.secondaryButtonText}</span>
-                                    </Link>
+                                    {banner.secondaryButtonLink === "#" ? (
+                                        <span className="px-6 py-3 bg-slate-200 dark:bg-slate-800 text-slate-400 font-bold text-xs sm:text-sm rounded-xl cursor-not-allowed opacity-75 border border-slate-300 dark:border-slate-700">
+                                            {banner.secondaryButtonText}
+                                        </span>
+                                    ) : banner.secondaryButtonLink.startsWith("#") ? (
+                                        <a
+                                            href={banner.secondaryButtonLink}
+                                            className="px-6 py-3 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-xs cursor-pointer inline-flex items-center"
+                                        >
+                                            <span>{banner.secondaryButtonText}</span>
+                                        </a>
+                                    ) : (
+                                        <Link
+                                            href={banner.secondaryButtonLink}
+                                            className="px-6 py-3 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-xs cursor-pointer"
+                                        >
+                                            <span>{banner.secondaryButtonText}</span>
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </div>
