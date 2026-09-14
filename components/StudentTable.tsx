@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
-import { Search, Users, Plus, Calendar, Award } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { Search, Users, Plus, Calendar, Award, ChevronDown, ChevronUp, UserCheck } from "lucide-react";
 import SplashScreen from "@/components/SplashScreen";
 import ExportButton from "@/components/ExportButton";
 import { getTitleLabel } from "@/utils/titleHelper";
+import StudentEditForm from "@/components/StudentEditForm";
+import StudentAvatarUploader from "@/components/StudentAvatarUploader";
+import { directUpdateStudentAction } from "@/app/actions/approval";
+import { deleteStudent, ensureMissingUsersAction } from "@/app/actions/student";
+
+interface StudentUserRecord {
+    id: string;
+    username: string;
+}
 
 interface Student {
     id: string;
@@ -14,9 +25,19 @@ interface Student {
     currentRank: string;
     gender: string | null;
     phone: string | null;
+    parentPhone?: string | null;
+    email?: string | null;
+    address?: string | null;
+    dateOfBirth?: Date | null;
+    healthNote?: string | null;
+    dojo?: string;
     joinDate: Date | null;
     status: string;
     title: string;
+    avatar?: string | null;
+    pendingAvatar?: string | null;
+    avatarStatus?: string | null;
+    user?: StudentUserRecord | null;
 }
 
 interface StudentTableProps {
@@ -29,7 +50,7 @@ interface StudentTableProps {
 }
 
 export default function StudentTable({
-    initialStudents,
+    initialStudents: serverStudents,
     totalStudents,
     activeStudents,
     blackBeltCount,
@@ -38,10 +59,12 @@ export default function StudentTable({
 }: StudentTableProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
 
     const isStudent = currentUserRole === "STUDENT";
+    const canInlineEdit = currentUserRole === "SUPER_ADMIN" || currentUserRole === "COACH";
+    const isSuperAdmin = currentUserRole === "SUPER_ADMIN";
 
-    // Khi cập nhật xong quay về có kèm mã #student-..., tắt logo và cuộn mượt đến dòng môn sinh
     useEffect(() => {
         if (typeof window !== "undefined" && window.location.hash) {
             const targetId = window.location.hash.replace("#", "");
@@ -57,7 +80,7 @@ export default function StudentTable({
         }
     }, []);
 
-    const filteredStudents = initialStudents.filter((student) => {
+    const filteredStudents = serverStudents.filter((student) => {
         const term = search.toLowerCase().trim();
         return (
             student.fullName.toLowerCase().includes(term) ||
@@ -87,6 +110,11 @@ export default function StudentTable({
         return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700";
     };
 
+    const toggleExpand = (studentId: string) => {
+        if (!canInlineEdit) return;
+        setExpandedStudentId((prev) => (prev === studentId ? null : studentId));
+    };
+
     return (
         <>
             {isLoading && (
@@ -111,7 +139,8 @@ export default function StudentTable({
                             Hiệp Khí Đạo An Giang - Theo dõi hồ sơ, cấp đai và quá trình thăng cấp
                         </p>
                     </div>
-                    <div className="flex items-center space-x-2.5">
+                    <div className="flex items-center space-x-2.5 flex-wrap gap-y-2">
+                        {isSuperAdmin && <SyncMissingUsersButton students={serverStudents} />}
                         <ExportButton type="STUDENTS" />
                         {!isStudent && (
                             <Link
@@ -205,7 +234,6 @@ export default function StudentTable({
                                         <th className="px-5 py-3.5">Mã số</th>
                                         <th className="px-5 py-3.5">Họ và tên</th>
                                         <th className="px-5 py-3.5">Cấp đai</th>
-                                        {/* Ẩn cột SĐT đối với tài khoản Môn sinh */}
                                         {!isStudent && <th className="px-5 py-3.5">Số điện thoại</th>}
                                         <th className="px-5 py-3.5">Ngày nhập môn</th>
                                         <th className="px-5 py-3.5 text-right">Trạng thái</th>
@@ -214,114 +242,228 @@ export default function StudentTable({
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {filteredStudents.map((student) => {
                                         const isSelf = currentStudentId === student.id;
+                                        const isExpanded = expandedStudentId === student.id;
 
                                         return (
-                                            <tr
-                                                key={student.id}
-                                                id={`student-${student.id}`}
-                                                className={`transition-all scroll-mt-24 target:bg-amber-100/80 dark:target:bg-amber-950/60 target:ring-2 target:ring-amber-500 ${isSelf
+                                            <React.Fragment key={student.id}>
+                                                <tr
+                                                    id={`student-${student.id}`}
+                                                    className={`transition-all scroll-mt-24 target:bg-amber-100/80 dark:target:bg-amber-950/60 target:ring-2 target:ring-amber-500 ${isSelf
                                                         ? "bg-red-50/60 dark:bg-red-950/30 font-semibold"
                                                         : "hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
-                                                    }`}
-                                            >
-                                                {/* Mã số: Nếu là chính mình thì trỏ về /students/me, người khác thì khóa */}
-                                                <td className="px-5 py-4 font-mono font-semibold">
-                                                    {isStudent ? (
-                                                        isSelf ? (
+                                                        }`}
+                                                >
+                                                    <td className="px-5 py-4 font-mono font-semibold">
+                                                        {isStudent ? (
+                                                            isSelf ? (
+                                                                <Link
+                                                                    href="/students/me"
+                                                                    className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+                                                                >
+                                                                    {student.studentCode}
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="text-slate-700 dark:text-slate-300">
+                                                                    {student.studentCode}
+                                                                </span>
+                                                            )
+                                                        ) : canInlineEdit ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleExpand(student.id)}
+                                                                className="text-left text-blue-600 dark:text-blue-400 hover:underline transition-colors cursor-pointer inline-flex items-center gap-1"
+                                                            >
+                                                                <span>{student.studentCode}</span>
+                                                                {isExpanded ? (
+                                                                    <ChevronUp className="w-3 h-3 text-red-500" />
+                                                                ) : (
+                                                                    <ChevronDown className="w-3 h-3 text-slate-400" />
+                                                                )}
+                                                            </button>
+                                                        ) : (
                                                             <Link
-                                                                href="/students/me"
+                                                                href={`/students/${student.id}`}
                                                                 className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
                                                             >
                                                                 {student.studentCode}
                                                             </Link>
-                                                        ) : (
-                                                            <span className="text-slate-700 dark:text-slate-300">
-                                                                {student.studentCode}
-                                                            </span>
-                                                        )
-                                                    ) : (
-                                                        <Link
-                                                            href={`/students/${student.id}`}
-                                                            className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
-                                                        >
-                                                            {student.studentCode}
-                                                        </Link>
-                                                    )}
-                                                </td>
+                                                        )}
+                                                    </td>
 
-                                                {/* Họ và tên: Nếu là chính mình thì trỏ về /students/me, người khác thì khóa */}
-                                                <td className="px-5 py-4">
-                                                    {isStudent ? (
-                                                        isSelf ? (
-                                                            <Link href="/students/me" className="group block">
-                                                                <span className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 hover:underline transition-colors block">
-                                                                    {student.fullName}
-                                                                    <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-red-600 text-white font-black uppercase">
-                                                                        Bạn
-                                                                    </span>
-                                                                </span>
-                                                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
-                                                                    {getTitleLabel(student.title)}
-                                                                </span>
-                                                            </Link>
-                                                        ) : (
-                                                            <div className="block">
-                                                                <span className="font-semibold text-slate-900 dark:text-white block">
-                                                                    {student.fullName}
-                                                                </span>
-                                                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
-                                                                    {getTitleLabel(student.title)}
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                    ) : (
-                                                        <Link href={`/students/${student.id}`} className="group block">
-                                                            <span className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 hover:underline transition-colors block">
-                                                                {student.fullName}
-                                                                {isSelf && (
-                                                                    <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-red-600 text-white font-black uppercase">
-                                                                        Bạn
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="w-9 h-9 rounded-full overflow-hidden relative border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
+                                                                {student.avatar ? (
+                                                                    <Image
+                                                                        src={student.avatar}
+                                                                        alt={student.fullName}
+                                                                        fill
+                                                                        className="object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="font-bold text-xs text-slate-500">
+                                                                        {student.fullName.charAt(0)}
                                                                     </span>
                                                                 )}
-                                                            </span>
-                                                            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
-                                                                {getTitleLabel(student.title)}
-                                                            </span>
-                                                        </Link>
-                                                    )}
-                                                </td>
+                                                            </div>
 
-                                                <td className="px-5 py-4">
-                                                    <span
-                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRankBadgeColor(
-                                                            student.currentRank
-                                                        )}`}
-                                                    >
-                                                        {student.currentRank}
-                                                    </span>
-                                                </td>
-
-                                                {/* Chỉ Admin/HLV mới thấy cột số điện thoại */}
-                                                {!isStudent && (
-                                                    <td className="px-5 py-4 text-slate-500 dark:text-slate-400 font-mono">
-                                                        {student.phone || "—"}
+                                                            {canInlineEdit && !isStudent ? (
+                                                                <div
+                                                                    onClick={() => toggleExpand(student.id)}
+                                                                    className="cursor-pointer group flex items-center gap-1.5"
+                                                                >
+                                                                    <div>
+                                                                        <span className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors block">
+                                                                            {student.fullName}
+                                                                        </span>
+                                                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
+                                                                            {getTitleLabel(student.title)} • Bấm sửa nhanh
+                                                                        </span>
+                                                                    </div>
+                                                                    {isExpanded ? (
+                                                                        <ChevronUp className="w-3.5 h-3.5 text-red-500" />
+                                                                    ) : (
+                                                                        <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700" />
+                                                                    )}
+                                                                </div>
+                                                            ) : isStudent ? (
+                                                                isSelf ? (
+                                                                    <Link href="/students/me" className="group block">
+                                                                        <span className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 hover:underline transition-colors block">
+                                                                            {student.fullName}
+                                                                            <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-red-600 text-white font-black uppercase">
+                                                                                Bạn
+                                                                            </span>
+                                                                        </span>
+                                                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
+                                                                            {getTitleLabel(student.title)}
+                                                                        </span>
+                                                                    </Link>
+                                                                ) : (
+                                                                    <div className="block">
+                                                                        <span className="font-semibold text-slate-900 dark:text-white block">
+                                                                            {student.fullName}
+                                                                        </span>
+                                                                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
+                                                                            {getTitleLabel(student.title)}
+                                                                        </span>
+                                                                    </div>
+                                                                )
+                                                            ) : (
+                                                                <Link href={`/students/${student.id}`} className="group block">
+                                                                    <span className="font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 hover:underline transition-colors block">
+                                                                        {student.fullName}
+                                                                    </span>
+                                                                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
+                                                                        {getTitleLabel(student.title)}
+                                                                    </span>
+                                                                </Link>
+                                                            )}
+                                                        </div>
                                                     </td>
-                                                )}
 
-                                                <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
-                                                    <div className="flex items-center space-x-1.5">
-                                                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                                                        <span>
-                                                            {student.joinDate ? new Date(student.joinDate).toLocaleDateString("vi-VN") : "—"}
+                                                    <td className="px-5 py-4">
+                                                        <span
+                                                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRankBadgeColor(
+                                                                student.currentRank
+                                                            )}`}
+                                                        >
+                                                            {student.currentRank}
                                                         </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-5 py-4 text-right">
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400">
-                                                        {student.status === "ACTIVE" ? "Đang tập" : student.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
+                                                    </td>
+
+                                                    {!isStudent && (
+                                                        <td className="px-5 py-4 text-slate-500 dark:text-slate-400 font-mono">
+                                                            {student.phone || "—"}
+                                                        </td>
+                                                    )}
+
+                                                    <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
+                                                        <div className="flex items-center space-x-1.5">
+                                                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                                            <span>
+                                                                {student.joinDate ? new Date(student.joinDate).toLocaleDateString("vi-VN") : "—"}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-4 text-right">
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400">
+                                                            {student.status === "ACTIVE" ? "Đang tập" : student.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+
+                                                {/* Inline Expand Edit with Sticky Header, Avatar Uploader, Form & Custom Modal Delete Button */}
+                                                {isExpanded && canInlineEdit && !isStudent && (
+                                                    <tr className="bg-slate-50/90 dark:bg-slate-800/60 border-y border-red-200/50 dark:border-red-900/30">
+                                                        <td colSpan={isStudent ? 5 : 6} className="p-0">
+                                                            <div className="bg-white dark:bg-slate-900 shadow-sm relative overflow-visible">
+                                                                {/* STICKY HEADER CHO KHUNG SỬA NHANH */}
+                                                                <div className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+                                                                            Đang sửa nhanh: {student.fullName} ({student.studentCode})
+                                                                        </h4>
+                                                                    </div>
+                                                                    <div className="flex items-center justify-between sm:justify-end gap-3 flex-wrap">
+                                                                        <StudentAvatarUploader
+                                                                            studentId={student.id}
+                                                                            currentAvatar={student.avatar || null}
+                                                                            pendingAvatar={student.pendingAvatar || null}
+                                                                            avatarStatus={student.avatarStatus || "NONE"}
+                                                                            isSuperAdmin={isSuperAdmin}
+                                                                            onSuperAdminDirectUpdate={async (targetId, dataUrl) => {
+                                                                                await directUpdateStudentAction(targetId, {
+                                                                                    avatar: dataUrl,
+                                                                                    avatarStatus: "APPROVED",
+                                                                                    pendingAvatar: null,
+                                                                                });
+                                                                            }}
+                                                                        />
+                                                                        {isSuperAdmin && (
+                                                                            <CustomDeleteModalButton
+                                                                                studentId={student.id}
+                                                                                fullName={student.fullName}
+                                                                            />
+                                                                        )}
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setExpandedStudentId(null)}
+                                                                            className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white font-medium cursor-pointer px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs"
+                                                                        >
+                                                                            ✕ Thu gọn
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="p-6">
+                                                                    <StudentEditForm
+                                                                        student={{
+                                                                            id: student.id,
+                                                                            studentCode: student.studentCode,
+                                                                            fullName: student.fullName,
+                                                                            currentRank: student.currentRank,
+                                                                            dojo: student.dojo || "HAYATE",
+                                                                            email: student.email,
+                                                                            healthNote: student.healthNote,
+                                                                            dateOfBirth: student.dateOfBirth,
+                                                                            gender: student.gender,
+                                                                            phone: student.phone,
+                                                                            parentPhone: student.parentPhone,
+                                                                            address: student.address,
+                                                                            status: student.status,
+                                                                            title: student.title || "MEMBER",
+                                                                            joinDate: student.joinDate,
+                                                                            user: student.user,
+                                                                        }}
+                                                                        currentUserRole={currentUserRole}
+                                                                        onClose={() => setExpandedStudentId(null)}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
                                         );
                                     })}
                                 </tbody>
@@ -330,6 +472,112 @@ export default function StudentTable({
                     )}
                 </div>
             </div>
+        </>
+    );
+}
+
+// Subcomponent for batch missing users sync
+function SyncMissingUsersButton({ students }: { students: Student[] }) {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+    const [msg, setMsg] = useState<string | null>(null);
+
+    const missingCount = students.filter((s) => !s.user).length;
+
+    if (missingCount <= 0) return null;
+
+    const handleSync = () => {
+        startTransition(async () => {
+            try {
+                const res = await ensureMissingUsersAction();
+                if (res && typeof res === "object" && "createdCount" in res) {
+                    setMsg(`Đã cấp bù thành công ${Number(res.createdCount)} tài khoản thiếu!`);
+                } else {
+                    setMsg("Đã cấp bù tài khoản thiếu!");
+                }
+                router.refresh();
+                setTimeout(() => setMsg(null), 3000);
+            } catch (err: unknown) {
+                alert(err instanceof Error ? err.message : "Lỗi khi cấp user");
+            }
+        });
+    };
+
+    return (
+        <div className="flex items-center gap-2">
+            <button
+                type="button"
+                onClick={handleSync}
+                disabled={isPending}
+                className="inline-flex items-center space-x-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer"
+            >
+                <UserCheck className="h-4 w-4" />
+                <span>{isPending ? "Đang xử lý..." : `Cấp lại user thiếu (${missingCount})`}</span>
+            </button>
+            {msg && <span className="text-xs text-emerald-600 font-semibold">{msg}</span>}
+        </div>
+    );
+}
+
+// Internal custom delete modal component matching design system
+function CustomDeleteModalButton({ studentId, fullName }: { studentId: string; fullName: string }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isPending, setIsPending] = useState(false);
+
+    const handleDelete = async () => {
+        setIsPending(true);
+        try {
+            await deleteStudent(studentId);
+            setIsOpen(false);
+        } catch (error) {
+            alert(error instanceof Error ? error.message : "Lỗi khi xóa");
+            setIsPending(false);
+        }
+    };
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={() => setIsOpen(true)}
+                className="inline-flex items-center space-x-1.5 text-xs text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900 transition-colors cursor-pointer"
+            >
+                <span>Xóa môn sinh</span>
+            </button>
+
+            {isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl max-w-sm w-full p-6 space-y-4">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                                Xác nhận xóa môn sinh
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                                Bạn có chắc chắn muốn xóa môn sinh <strong className="text-slate-800 dark:text-slate-200">&ldquo;{fullName}&rdquo;</strong> không? Hành động này sẽ xóa toàn bộ dữ liệu lịch sử đai, điểm danh và tài khoản liên quan.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2.5 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsOpen(false)}
+                                disabled={isPending}
+                                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDelete}
+                                disabled={isPending}
+                                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                                {isPending ? "Đang xóa..." : "Xác nhận xóa"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

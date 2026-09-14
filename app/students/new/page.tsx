@@ -352,7 +352,7 @@ export default function NewStudentPage() {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="sticky top-0 z-40 flex items-center justify-between bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <Link
                     href="/students"
                     className="inline-flex items-center space-x-2 text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"

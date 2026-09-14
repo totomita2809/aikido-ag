@@ -14,12 +14,12 @@ function parseVNDate(dateStr: string | null | undefined): Date | null {
 
     // 1. Định dạng dd/MM/yyyy
     if (cleanStr.includes("/")) {
-        const parts = cleanStr.split("/");
-        if (parts.length === 3) {
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1;
-            const year = parseInt(parts[2], 10);
-            if (!isNaN(day) && !isNaN(month) && !isNaN(year) && parts[2].length === 4) {
+        const [dayStr, monthStr, yearStr] = cleanStr.split("/");
+        if (dayStr && monthStr && yearStr && yearStr.length === 4) {
+            const day = parseInt(dayStr, 10);
+            const month = parseInt(monthStr, 10) - 1;
+            const year = parseInt(yearStr, 10);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
                 return new Date(Date.UTC(year, month, day, 0, 0, 0));
             }
         }
@@ -28,6 +28,106 @@ function parseVNDate(dateStr: string | null | undefined): Date | null {
     // 2. Định dạng yyyy-MM-dd
     const parsed = new Date(cleanStr);
     return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+// Hàm trích xuất quy tắc sinh tài khoản chuẩn hóa theo họ tên và mã môn sinh
+function generateStudentCredentials(student: {
+    fullName: string;
+    studentCode: string;
+    dateOfBirth?: Date | string | null;
+}) {
+    const cleanName = student.fullName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .toLowerCase()
+        .trim();
+
+    const parts = cleanName.split(/\s+/).filter(Boolean);
+
+    let namePrefix = "user";
+    if (parts.length >= 3) {
+        const ho = parts[0].replace(/[^a-z0-9]/g, "");
+        const ten = parts[parts.length - 1].replace(/[^a-z0-9]/g, "");
+        namePrefix = `${ho}${ten}`;
+    } else if (parts.length === 2) {
+        const ho = parts[0].replace(/[^a-z0-9]/g, "");
+        const ten = parts[1].replace(/[^a-z0-9]/g, "");
+        namePrefix = `${ho}${ten}`;
+    } else if (parts.length === 1) {
+        namePrefix = parts[0].replace(/[^a-z0-9]/g, "");
+    }
+
+    const matchCode = (student.studentCode || "").match(/\d+$/);
+    const suffixNum = matchCode ? matchCode[0] : "001";
+    const username = `${namePrefix}${suffixNum}`;
+
+    const birthYear = student.dateOfBirth
+        ? new Date(student.dateOfBirth).getFullYear().toString()
+        : "2000";
+
+    return {
+        username,
+        initialPassword: birthYear,
+    };
+}
+
+// Tự động rà soát và tạo tài khoản đăng nhập (User) còn thiếu 
+// cho những môn sinh (Student) trong cơ sở dữ liệu chưa được liên kết tài khoản nào.
+export async function ensureMissingUsersAction() {
+    const session = await getSession();
+    if (!session || session.role !== "SUPER_ADMIN") {
+        throw new Error("Không có quyền thực hiện");
+    }
+
+    const studentsWithoutUser = await prisma.student.findMany({
+        where: {
+            user: {
+                is: null,
+            },
+        },
+    });
+
+    let createdCount = 0;
+    for (const student of studentsWithoutUser) {
+        const creds = generateStudentCredentials({
+            fullName: student.fullName,
+            studentCode: student.studentCode,
+            dateOfBirth: student.dateOfBirth,
+        });
+
+        const username = creds.username;
+        const passwordHash = await bcrypt.hash(creds.initialPassword, 10);
+        const userEmail = student.email || `${username}@aikidoangiang.local`;
+
+        const existing = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { username },
+                    { email: userEmail },
+                ],
+            },
+        });
+
+        if (!existing && username) {
+            await prisma.user.create({
+                data: {
+                    username,
+                    email: userEmail,
+                    name: student.fullName,
+                    passwordHash,
+                    role: student.title === "SHIDOIN" ? "COACH" : "STUDENT",
+                    studentId: student.id,
+                    mustChangePassword: true,
+                },
+            });
+            createdCount++;
+        }
+    }
+
+    revalidatePath("/students");
+    return { success: true, createdCount };
 }
 
 // Tự động kiểm tra database và cấp mã số kế tiếp bắt đầu từ 001 theo số đuôi lớn nhất trên TOÀN BỘ hệ thống (không trùng giữa các sân và HLV)
@@ -146,35 +246,17 @@ export async function createStudent(formData: FormData) {
         data: studentData,
     });
 
-    // 1. Tự sinh username không dấu chuẩn theo họ + tên + số đuôi mã (ví dụ: kiemthu023)
-    const cleanName = fullName
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/đ/g, "d")
-        .replace(/Đ/g, "D")
-        .toLowerCase()
-        .trim();
+    const creds = generateStudentCredentials({
+        fullName,
+        studentCode: cleanCode,
+        dateOfBirth,
+    });
 
-    const nameParts = cleanName.split(/\s+/).filter(Boolean);
-    let usernamePrefix = "";
-    if (nameParts.length >= 2) {
-        const lastName = nameParts[0].replace(/[^a-z0-9]/g, "");
-        const firstName = nameParts[nameParts.length - 1].replace(/[^a-z0-9]/g, "");
-        usernamePrefix = `${lastName}${firstName}`;
-    } else if (nameParts.length === 1) {
-        usernamePrefix = nameParts[0].replace(/[^a-z0-9]/g, "");
-    } else {
-        usernamePrefix = "user";
-    }
-
-    const generatedUsername = `${usernamePrefix}${suffix}`;
+    const generatedUsername = creds.username;
     const userEmail = email || `${generatedUsername}@aikidoangiang.local`;
 
-    // 2. Mật khẩu khởi tạo: ưu tiên Năm sinh -> SĐT -> 123456
-    let defaultPassword = "123456";
-    if (dateOfBirth) {
-        defaultPassword = dateOfBirth.getUTCFullYear().toString();
-    } else if (phone && phone.trim() !== "") {
+    let defaultPassword = creds.initialPassword;
+    if (!dateOfBirth && phone && phone.trim() !== "") {
         defaultPassword = phone.trim();
     }
 
@@ -246,6 +328,7 @@ export async function createStudent(formData: FormData) {
         },
     };
 }
+
 export async function updateStudent(id: string, formData: FormData) {
     const session = await getSession();
     if (!session) {
@@ -342,11 +425,38 @@ export async function updateStudent(id: string, formData: FormData) {
             data: updateData,
         });
 
-        // Đồng thời cập nhật thông tin email tài khoản User nếu có thay đổi
-        if (email) {
+        // Đồng bộ chuẩn username, name, email, role, và passwordHash vào bảng User liên kết
+        if (fullName) {
+            const creds = generateStudentCredentials({
+                fullName,
+                studentCode: cleanCode,
+                dateOfBirth,
+            });
+
+            const syncedUsername = creds.username;
+            const syncedEmail = email || `${syncedUsername}@aikidoangiang.local`;
+            const targetRole = title === "SHIDOIN" ? "COACH" : "STUDENT";
+
+            const userUpdatePayload: {
+                name: string;
+                username: string;
+                email: string;
+                role: string;
+                passwordHash?: string;
+            } = {
+                name: fullName,
+                username: syncedUsername,
+                email: syncedEmail,
+                role: targetRole,
+            };
+
+            if (dateOfBirth) {
+                userUpdatePayload.passwordHash = await bcrypt.hash(creds.initialPassword, 10);
+            }
+
             await prisma.user.updateMany({
                 where: { studentId: id },
-                data: { email, name: fullName },
+                data: userUpdatePayload,
             });
         }
 
@@ -358,6 +468,10 @@ export async function updateStudent(id: string, formData: FormData) {
                     studentId: id,
                     ...permissions,
                 },
+            });
+        } else {
+            await prisma.coachPermission.deleteMany({
+                where: { studentId: id },
             });
         }
 
@@ -391,7 +505,6 @@ export async function updateStudent(id: string, formData: FormData) {
     revalidatePath("/admin/approvals");
     return { success: true };
 }
-
 
 export async function deleteStudent(id: string) {
     const session = await getSession();

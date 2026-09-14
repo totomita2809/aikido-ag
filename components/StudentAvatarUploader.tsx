@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Image from "next/image";
-import { Camera, AlertCircle, Clock, Check,  ShieldAlert } from "lucide-react";
+import { Camera, AlertCircle, Clock, Check, ShieldAlert, Zap } from "lucide-react";
 import { requestAvatarUpdate } from "@/app/actions/avatar";
 
 interface Props {
@@ -10,6 +10,8 @@ interface Props {
     currentAvatar: string | null;
     pendingAvatar: string | null;
     avatarStatus: string | null;
+    isSuperAdmin?: boolean;
+    onSuperAdminDirectUpdate?: (studentId: string, compressedDataUrl: string) => Promise<unknown>;
 }
 
 export default function StudentAvatarUploader({
@@ -17,6 +19,8 @@ export default function StudentAvatarUploader({
     currentAvatar,
     pendingAvatar,
     avatarStatus,
+    isSuperAdmin = false,
+    onSuperAdminDirectUpdate,
 }: Props) {
     const [showRuleModal, setShowRuleModal] = useState(false);
     const [selectedPreview, setSelectedPreview] = useState<string | null>(null);
@@ -29,15 +33,16 @@ export default function StudentAvatarUploader({
             const img = document.createElement("img");
             const reader = new FileReader();
 
-            reader.onload = (e) => {
-                img.src = e.target?.result as string;
+            reader.onload = (e: ProgressEvent<FileReader>) => {
+                if (typeof e.target?.result === "string") {
+                    img.src = e.target.result;
+                }
             };
 
             img.onload = () => {
                 const canvas = document.createElement("canvas");
                 const ctx = canvas.getContext("2d");
 
-                // Chuẩn hóa kích thước tối đa cho ảnh chân dung (600x800px)
                 const MAX_WIDTH = 600;
                 const MAX_HEIGHT = 800;
                 let width = img.width;
@@ -62,7 +67,6 @@ export default function StudentAvatarUploader({
                     ctx.fillStyle = "#FFFFFF";
                     ctx.fillRect(0, 0, width, height);
                     ctx.drawImage(img, 0, 0, width, height);
-                    // Nén và chuyển đổi sang JPEG chất lượng 0.82
                     const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
                     resolve(compressedDataUrl);
                 } else {
@@ -70,7 +74,7 @@ export default function StudentAvatarUploader({
                 }
             };
 
-            reader.onerror = reject;
+            reader.onerror = () => reject(new Error("Lỗi đọc file"));
             reader.readAsDataURL(file);
         });
     };
@@ -96,10 +100,21 @@ export default function StudentAvatarUploader({
     const handleConfirmUpload = () => {
         if (!selectedPreview) return;
 
-        startTransition(async () => {
-            await requestAvatarUpdate(studentId, selectedPreview);
-            setShowRuleModal(false);
-            setIsSubmitted(true);
+        startTransition(() => {
+            void (async () => {
+                try {
+                    if (isSuperAdmin && onSuperAdminDirectUpdate) {
+                        await onSuperAdminDirectUpdate(studentId, selectedPreview);
+                    } else {
+                        await requestAvatarUpdate(studentId, selectedPreview);
+                    }
+                    setShowRuleModal(false);
+                    setIsSubmitted(true);
+                } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : "Đã xảy ra lỗi khi cập nhật ảnh";
+                    alert(msg);
+                }
+            })();
         });
     };
 
@@ -128,13 +143,15 @@ export default function StudentAvatarUploader({
                         id={`avatar-upload-${studentId}`}
                         type="file"
                         accept="image/jpeg,image/png,image/jpg"
-                        onChange={handleFileChange}
+                        onChange={(e) => {
+                            void handleFileChange(e);
+                        }}
                         className="sr-only"
                     />
                 </div>
 
                 {/* Nhãn trạng thái */}
-                {(avatarStatus === "PENDING" || isSubmitted) && (
+                {!isSuperAdmin && (avatarStatus === "PENDING" || isSubmitted) && (
                     <span className="absolute -bottom-2 -right-2 inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow">
                         <Clock className="w-3 h-3" />
                         <span>Chờ duyệt</span>
@@ -146,7 +163,7 @@ export default function StudentAvatarUploader({
                 Chấp nhận JPG, PNG. Tối đa 5MB (Tự động nén tối ưu).
             </p>
 
-            {/* MODAL THÔNG BÁO QUY ĐỊNH ẢNH THẺ & DUYỆT 48H */}
+            {/* MODAL THÔNG BÁO QUY ĐỊNH ẢNH THẺ & DUYỆT 48H / SUPER ADMIN */}
             {showRuleModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
@@ -167,12 +184,21 @@ export default function StudentAvatarUploader({
                                 <li>Không đeo kính râm, không đội mũ, không dùng hiệu ứng filter làm biến dạng khuôn mặt.</li>
                             </ul>
 
-                            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-start space-x-2">
-                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                                <span>
-                                    Ảnh thẻ mới sẽ được <strong>Ban Quản Trị xét duyệt trong vòng 48 tiếng</strong> trước khi hiển thị chính thức trên hệ thống điểm danh.
-                                </span>
-                            </div>
+                            {isSuperAdmin ? (
+                                <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-800 dark:text-indigo-300 flex items-start space-x-2">
+                                    <Zap className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <span>
+                                        Chế độ <strong>Super Admin</strong>: Ảnh thay đổi sẽ được cập nhật thẳng vào cơ sở dữ liệu ngay lập tức không qua chờ duyệt.
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-start space-x-2">
+                                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <span>
+                                        Ảnh thẻ mới sẽ được <strong>Ban Quản Trị xét duyệt trong vòng 48 tiếng</strong> trước khi hiển thị chính thức trên hệ thống điểm danh.
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Xem trước ảnh đã qua nén */}
@@ -191,7 +217,7 @@ export default function StudentAvatarUploader({
                                     setShowRuleModal(false);
                                     setSelectedPreview(null);
                                 }}
-                                className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                             >
                                 Hủy bỏ
                             </button>
@@ -199,10 +225,10 @@ export default function StudentAvatarUploader({
                                 type="button"
                                 disabled={isPending}
                                 onClick={handleConfirmUpload}
-                                className="inline-flex items-center space-x-1.5 px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm disabled:opacity-50"
+                                className="inline-flex items-center space-x-1.5 px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
                             >
                                 {isPending ? <Clock className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                <span>{isPending ? "Đang gửi..." : "Tôi hiểu & Gửi duyệt"}</span>
+                                <span>{isPending ? "Đang xử lý..." : isSuperAdmin ? "Lưu cập nhật" : "Tôi hiểu & Gửi duyệt"}</span>
                             </button>
                         </div>
                     </div>

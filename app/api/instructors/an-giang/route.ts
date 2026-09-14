@@ -46,6 +46,7 @@ function formatDojoName(dojoVal: string | null | undefined): string {
     if (!dojoVal) return DOJO_CONTACT_INFO.dojoName;
     const upper = dojoVal.toUpperCase();
     if (upper === "BOTH" || upper.includes("AN GIANG") || upper.includes("GIANG")) return DOJO_CONTACT_INFO.dojoName;
+    if (upper === "H HAYATE") return "HAYATE DOJO";
     if (upper === "HAYATE") return "HAYATE DOJO";
     if (upper === "TACHI") return "TACHI DOJO";
     return sanitizeVietnamese(upper);
@@ -64,31 +65,49 @@ const HEAD_COACH_DEFAULT: InstructorItem = {
 
 export async function GET() {
     try {
+        const directRoles = ['INSTRUCTOR', 'HLV', 'hlv', 'HLV_TRUONG'];
+        const adminRoles = ['ADMIN', 'SUPER_ADMIN', 'COACH'];
+        const headCoachName = DOJO_CONTACT_INFO.headCoach;
+
         const users: UserWithStudent[] = await prisma.user.findMany({
+            where: {
+                OR: [
+                    {
+                        AND: [
+                            { role: { notIn: adminRoles } },
+                            {
+                                OR: [
+                                    { role: { in: directRoles } },
+                                    { student: { title: 'SHIDOIN' } },
+                                    { name: { contains: headCoachName, mode: 'insensitive' } },
+                                    { name: { contains: 'anh vũ', mode: 'insensitive' } },
+                                    { student: { fullName: { contains: headCoachName, mode: 'insensitive' } } },
+                                    { student: { fullName: { contains: 'anh vũ', mode: 'insensitive' } } },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        AND: [
+                            { role: { in: adminRoles } },
+                            {
+                                OR: [
+                                    { role: { in: directRoles } },
+                                    { student: { title: 'SHIDOIN' } },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
             include: {
-                student: true
-            }
+                student: true,
+            },
         });
 
-        const headCoachNameLower = DOJO_CONTACT_INFO.headCoach.toLowerCase();
+        const headCoachNameLower = headCoachName.toLowerCase();
 
-        // Lọc chặt: chỉ lấy môn sinh có title SHIDOIN hoặc role HLV giảng dạy, loại bỏ admin/coach thuần không chuyên môn
-        const filteredInstructors = users.filter((u) => {
-            const s = u.student;
-            const rawName = sanitizeVietnamese(s?.fullName ?? u.name ?? "").toLowerCase();
-            const isHeadCoachName = rawName.includes(headCoachNameLower) || rawName.includes("anh vũ");
-
-            const isDirectCoachRole = ['INSTRUCTOR', 'HLV', 'hlv', 'HLV_TRUONG'].includes(u.role);
-            const isCoachTitle = s?.title === 'SHIDOIN';
-
-            // Loại bỏ admin/coach tổng không gắn với SHIDOIN hoặc HLV chuyên môn
-            const isAdminOrGenericCoach = ['ADMIN', 'SUPER_ADMIN', 'COACH'].includes(u.role) && !isCoachTitle && !isDirectCoachRole;
-            if (isAdminOrGenericCoach) return false;
-
-            return isDirectCoachRole || isCoachTitle || isHeadCoachName;
-        });
-
-        const dbMapped: InstructorItem[] = filteredInstructors.map((u, idx) => {
+        const dbMapped: InstructorItem[] = users.map((u, idx) => {
             const s = u.student;
             const rawName = s?.fullName ?? u.name ?? "Huấn luyện viên";
             const rawRank = s?.currentRank ?? "Đại đen";
@@ -129,15 +148,11 @@ export async function GET() {
             : [HEAD_COACH_DEFAULT, ...dbMapped];
 
         return NextResponse.json({
-            title: "Đội ngũ Huấn luyện viên Aikido An Giang",
-            subtitle: "Những huấn luyện viên đóng góp cho phong trào võ đạo tại tỉnh nhà.",
             instructors: finalInstructors.length > 0 ? finalInstructors : [HEAD_COACH_DEFAULT]
         });
     } catch (error) {
         console.error("Lỗi query HLV từ Prisma:", error);
         return NextResponse.json({
-            title: "Đội ngũ Huấn luyện viên Aikido An Giang",
-            subtitle: "Những huấn luyện viên đóng góp cho phong trào võ đạo tại tỉnh nhà.",
             instructors: [HEAD_COACH_DEFAULT]
         }, { status: 500 });
     }

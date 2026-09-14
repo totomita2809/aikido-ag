@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { INSTRUCTOR_GROUPS } from "@/lib/constants";
 
 interface Instructor {
@@ -77,6 +77,7 @@ function InstructorCard({ instructor }: { instructor: Instructor }) {
     const roleClean: string = cleanUnicode(instructor.role);
     const rankClean: string = cleanUnicode(instructor.rank);
     const expClean: string = cleanUnicode(instructor.experience);
+    const filterId: string = `sumi-clean-${instructor.code}`;
 
     return (
         <div className="group relative w-full rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-stone-300 dark:border-stone-800 bg-[#fbf9f5] dark:bg-[#121211] p-5 sm:p-6 flex flex-col md:flex-row items-center gap-6 animate-fadeIn">
@@ -86,12 +87,12 @@ function InstructorCard({ instructor }: { instructor: Instructor }) {
                     className="w-full h-full overflow-visible pointer-events-none relative z-0"
                 >
                     <defs>
-                        <filter id="sumi-clean" x="-20%" y="-20%" width="140%" height="140%">
+                        <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
                             <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" result="noise" />
                             <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" />
                         </filter>
                     </defs>
-                    <g filter="url(#sumi-clean)">
+                    <g filter={`url(#${filterId})`}>
                         <path
                             d="M120 12C60 12 14 58 16 118C18 174 64 220 122 218C178 216 222 170 218 116"
                             fill="none"
@@ -181,76 +182,104 @@ function InstructorCard({ instructor }: { instructor: Instructor }) {
 }
 
 export default function InstructorSection() {
-    console.log("FALLBACK CHECK:", FALLBACK_INSTRUCTORS);
     const [groupData, setGroupData] = useState<{
         title: string;
         subtitle: string;
         instructors: Instructor[];
     }>({
         title: INSTRUCTOR_GROUPS.anGiang?.title || "Đội ngũ Aikido An Giang",
-        subtitle: INSTRUCTOR_GROUPS.anGiang?.subtitle || "Những người dẫn dắt và phát triển phong trào võ đạo tại tỉnh nhà.",
+        subtitle: INSTRUCTOR_GROUPS.anGiang?.subtitle || "Những người đóng góp và phát triển phong trào võ đạo tại tỉnh nhà.",
         instructors: FALLBACK_INSTRUCTORS,
     });
     const [currentIndex, setCurrentIndex] = useState<number>(0);
+    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-    useEffect(() => {
-        let isMounted = true;
-        async function fetchAnGiangData(): Promise<void> {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const fetchRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
-                const res: Response = await fetch('/api/instructors/an-giang', {
-                    signal: controller.signal,
-                });
-                clearTimeout(timeoutId);
+    const fetchAnGiangData = useCallback(async (): Promise<void> => {
+        setIsRefreshing(true);
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-                if (res.ok) {
-                    const data = await res.json();
-                    if (isMounted && data?.instructors && data.instructors.length > 0) {
-                        setGroupData((prev) => ({
-                            ...prev,
-                            title: data.title || prev.title,
-                            subtitle: data.subtitle || prev.subtitle,
-                            instructors: data.instructors,
-                        }));
-                    }
+            const res: Response = await fetch('/api/instructors/an-giang', {
+                signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data?.instructors && data.instructors.length > 0) {
+                    setGroupData((prev) => ({
+                        ...prev,
+                        title: data.title || prev.title,
+                        subtitle: data.subtitle || prev.subtitle,
+                        instructors: data.instructors,
+                    }));
                 }
-            } catch (err: unknown) {
-                console.warn("API HLV chậm/timeout, giữ nguyên fallback:", err);
+            } else {
+                throw new Error(`HTTP error! status: ${res.status}`);
             }
+        } catch (err: unknown) {
+            console.warn("API HLV timeout/lỗi, tự động thử lại sau 10s:", err);
+            if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+            retryTimeoutRef.current = setTimeout(() => {
+                fetchRef.current();
+            }, 10000);
+        } finally {
+            setIsRefreshing(false);
         }
-        fetchAnGiangData();
-        return () => {
-            isMounted = false;
-        };
     }, []);
 
+    useEffect(() => {
+        fetchRef.current = fetchAnGiangData;
+    }, [fetchAnGiangData]);
+
+    useEffect(() => {
+        let isCancelled = false;
+        async function runInit(): Promise<void> {
+            if (!isCancelled) {
+                await fetchRef.current();
+            }
+        }
+        runInit();
+        return () => {
+            isCancelled = true;
+            if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        };
+    }, []);
 
     const instructorsList: Instructor[] = groupData.instructors.length > 0 ? groupData.instructors : FALLBACK_INSTRUCTORS;
 
     useEffect(() => {
         if (instructorsList.length <= 2) return;
         const interval: NodeJS.Timeout = setInterval(() => {
-            setCurrentIndex((prev: number) => (prev + 1) % instructorsList.length);
-        }, 5000);
+            setCurrentIndex((prev: number) => (prev + 2) % instructorsList.length);
+        }, 6000);
         return () => clearInterval(interval);
     }, [instructorsList.length]);
 
     const handlePrev = (): void => {
-        setCurrentIndex((prev: number) =>
-            prev === 0 ? instructorsList.length - 1 : prev - 1
-        );
+        setCurrentIndex((prev: number) => {
+            if (instructorsList.length === 0) return 0;
+            return (prev - 2 + instructorsList.length) % instructorsList.length;
+        });
     };
 
     const handleNext = (): void => {
-        setCurrentIndex((prev: number) => (prev + 1) % instructorsList.length);
+        setCurrentIndex((prev: number) => {
+            if (instructorsList.length === 0) return 0;
+            return (prev + 2) % instructorsList.length;
+        });
     };
 
-    const firstInstructor: Instructor | undefined = instructorsList[currentIndex] || instructorsList[0];
-    const secondInstructor: Instructor | undefined =
-        instructorsList[(currentIndex + 1) % instructorsList.length] ||
-        firstInstructor;
+    const firstInstructor: Instructor | undefined = instructorsList.length > 0
+        ? instructorsList[currentIndex % instructorsList.length]
+        : undefined;
+    const secondInstructor: Instructor | undefined = instructorsList.length > 1
+        ? instructorsList[(currentIndex + 1) % instructorsList.length]
+        : undefined;
 
     return (
         <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
@@ -263,11 +292,18 @@ export default function InstructorSection() {
                         <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
                             Đội ngũ giảng dạy chuyên môn
                         </h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                            
-                        </p>
+                        
                     </div>
                 </div>
+                <button
+                    onClick={() => fetchAnGiangData()}
+                    disabled={isRefreshing}
+                    title="Làm mới dữ liệu HLV"
+                    className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                    {isRefreshing ? "Đang đồng bộ..." : "Làm mới"}
+                </button>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -276,8 +312,7 @@ export default function InstructorSection() {
                         {groupData.title}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {groupData.subtitle} — Hiển thị HLV {instructorsList.length > 0 ? currentIndex + 1 : 0}/
-                        {instructorsList.length}
+                        {groupData.subtitle}
                     </p>
                 </div>
 
@@ -285,14 +320,14 @@ export default function InstructorSection() {
                     <div className="flex items-center space-x-2 self-end sm:self-auto">
                         <button
                             onClick={handlePrev}
-                            aria-label="Previous instructor"
+                            aria-label="Previous instructors pair"
                             className="p-2 rounded-full border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition-colors cursor-pointer"
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </button>
                         <button
                             onClick={handleNext}
-                            aria-label="Next instructor"
+                            aria-label="Next instructors pair"
                             className="p-2 rounded-full border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition-colors cursor-pointer"
                         >
                             <ChevronRight className="w-4 h-4" />

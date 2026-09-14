@@ -1,13 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Trash2, UserCog, CreditCard, Activity, Calendar, ShieldAlert, KeyRound } from "lucide-react";
+import { ArrowLeft, UserCog, CreditCard, Activity, Calendar, ShieldAlert, KeyRound } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { deleteStudent } from "@/app/actions/student";
+import { directUpdateStudentAction } from "@/app/actions/approval";
 import { getSession } from "@/lib/auth";
 import RankHistorySection from "@/components/RankHistorySection";
 import StudentAvatarUploader from "@/components/StudentAvatarUploader";
 import StudentEditForm from "@/components/StudentEditForm";
+import DeleteStudentButton from "@/components/DeleteStudentButton";
 
 export default async function StudentDetailPage({
     params,
@@ -35,14 +36,18 @@ export default async function StudentDetailPage({
         dateOfBirth: Date | null;
         gender: string | null;
         phone: string | null;
+        parentPhone?: string | null;
         address: string | null;
         avatar?: string | null;
         pendingAvatar?: string | null;
         avatarStatus?: string | null;
         status: string;
+        title?: string;
+        joinDate?: Date | null;
         user?: {
             username?: string | null;
             email: string;
+            passwordHash?: string | null;
         } | null;
         tuitionFees?: {
             id: string;
@@ -90,7 +95,6 @@ export default async function StudentDetailPage({
 
     const isOwner = session.studentId === student.id;
 
-    // Phân quyền: Môn sinh khi xem hồ sơ của môn sinh khác chỉ thấy thông tin cơ bản
     if (!isManager && !isOwner) {
         return (
             <div className="max-w-md mx-auto space-y-6">
@@ -134,8 +138,6 @@ export default async function StudentDetailPage({
         );
     }
 
-    const deleteStudentWithId = deleteStudent.bind(null, student.id);
-
     const dbForCount = prisma as unknown as {
         attendanceRecord?: { count: (args: unknown) => Promise<number> };
         attendance?: { count: (args: unknown) => Promise<number> };
@@ -147,18 +149,31 @@ export default async function StudentDetailPage({
         ? await attendanceModel.count({ where: { studentId: id, status: "PRESENT" } })
         : 0;
 
-    // Tính toán thông tin tài khoản hiển thị chính xác theo từng môn sinh
+    const cleanName = student.fullName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .toLowerCase()
+        .trim();
+    const nameParts = cleanName.split(/\s+/).filter(Boolean);
+    let usernamePrefix = "user";
+    if (nameParts.length >= 2) {
+        const lastName = nameParts[0]?.replace(/[^a-z0-9]/g, "") ?? "";
+        const firstName = nameParts[nameParts.length - 1]?.replace(/[^a-z0-9]/g, "") ?? "";
+        usernamePrefix = `${lastName}${firstName}`;
+    } else if (nameParts.length === 1) {
+        usernamePrefix = nameParts[0]?.replace(/[^a-z0-9]/g, "") ?? "user";
+    }
+    const matchCode = student.studentCode.match(/\d+$/);
+    const suffixNum = matchCode ? matchCode[0] : "001";
+    const computedUsername = `${usernamePrefix}${suffixNum}`;
+
     const displayUsername =
         student.user?.username ||
         student.user?.email ||
         student.email ||
-        `${student.studentCode.toLowerCase()}@aikidoangiang.local`;
-
-    const initialPassword = student.dateOfBirth
-        ? new Date(student.dateOfBirth).getUTCFullYear().toString()
-        : student.phone && student.phone.trim() !== ""
-            ? student.phone.trim()
-            : "123456";
+        computedUsername;
 
     return (
         <div className="max-w-3xl mx-auto space-y-6 pb-12">
@@ -172,19 +187,10 @@ export default async function StudentDetailPage({
                 </Link>
 
                 {isSuperAdmin && (
-                    <form action={deleteStudentWithId}>
-                        <button
-                            type="submit"
-                            className="inline-flex items-center space-x-1.5 text-xs text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900 transition-colors cursor-pointer"
-                        >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Xóa môn sinh</span>
-                        </button>
-                    </form>
+                    <DeleteStudentButton studentId={student.id} fullName={student.fullName} />
                 )}
             </div>
 
-            {/* Thông tin tài khoản đăng nhập (Chỉ HLV Trưởng / SUPER_ADMIN mới nhìn thấy) */}
             {isSuperAdmin && (
                 <div className="bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center space-x-3">
@@ -193,7 +199,7 @@ export default async function StudentDetailPage({
                         </div>
                         <div>
                             <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
-                                Tài khoản hệ thống & Mật khẩu
+                                Tài khoản hệ thống & Mật khẩu (DB Sync)
                             </h4>
                             <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
                                 Tên đăng nhập: <strong className="font-mono text-slate-900 dark:text-white">{displayUsername}</strong>
@@ -201,7 +207,12 @@ export default async function StudentDetailPage({
                         </div>
                     </div>
                     <div className="text-xs bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 text-slate-600 dark:text-slate-300 shadow-2xs">
-                        Mật khẩu ban đầu: <code className="font-mono font-bold text-red-600">{initialPassword}</code> (Đã mã hóa)
+                        Trạng thái pass: <code className="font-mono font-bold text-emerald-600">{student.user?.passwordHash ? "Đã mã hóa (Active)" : "Chưa khởi tạo"}</code>
+                        {student.dateOfBirth && (
+                            <span className="block text-[10px] text-slate-400 mt-0.5">
+                                Khớp pass năm sinh: {new Date(student.dateOfBirth).getUTCFullYear()}
+                            </span>
+                        )}
                     </div>
                 </div>
             )}
@@ -227,14 +238,40 @@ export default async function StudentDetailPage({
                         currentAvatar={student.avatar || null}
                         pendingAvatar={student.pendingAvatar || null}
                         avatarStatus={student.avatarStatus || "NONE"}
+                        isSuperAdmin={isSuperAdmin}
+                        onSuperAdminDirectUpdate={async (targetId, dataUrl) => {
+                            "use server";
+                            await directUpdateStudentAction(targetId, {
+                                avatar: dataUrl,
+                                avatarStatus: "APPROVED",
+                                pendingAvatar: null,
+                            });
+                        }}
                     />
                 </div>
 
-                {/* Form chỉnh sửa thông tin */}
-                <StudentEditForm student={student} />
+                <StudentEditForm
+                    student={{
+                        id: student.id,
+                        studentCode: student.studentCode,
+                        fullName: student.fullName,
+                        currentRank: student.currentRank,
+                        dojo: student.dojo || "HAYATE",
+                        email: student.email ?? null,
+                        healthNote: student.healthNote ?? null,
+                        dateOfBirth: student.dateOfBirth ?? null,
+                        gender: student.gender ?? null,
+                        phone: student.phone ?? null,
+                        parentPhone: student.parentPhone ?? null,
+                        address: student.address ?? null,
+                        status: student.status,
+                        title: student.title || "MEMBER",
+                        joinDate: student.joinDate ?? null,
+                    }}
+                    currentUserRole={isSuperAdmin ? "SUPER_ADMIN" : isManager ? "COACH" : "STUDENT"}
+                />
             </div>
 
-            {/* Thống kê chuyên cần nhanh */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 flex items-center justify-between">
                 <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Tổng chuyên cần thực tế</h3>
@@ -245,7 +282,6 @@ export default async function StudentDetailPage({
                 </div>
             </div>
 
-            {/* Lịch sử đóng học phí gần đây */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                     <CreditCard className="w-4 h-4 text-blue-500" />
@@ -296,13 +332,11 @@ export default async function StudentDetailPage({
                 )}
             </div>
 
-            {/* Lịch sử thi đai */}
             <RankHistorySection
                 studentId={student.id}
                 rankHistories={student.rankHistories || []}
             />
 
-            {/* Lịch sử điểm danh gần đây */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                     <Activity className="w-4 h-4 text-emerald-500" />

@@ -18,6 +18,157 @@ interface ApprovalResult {
     errors?: string[];
 }
 
+export interface DirectUpdateResult {
+    success: boolean;
+    status: "DIRECT_UPDATED";
+    message: string;
+    changes: string[];
+}
+
+// 4. Cập nhật trực tiếp dành cho SUPER_ADMIN không cần qua duyệt
+export async function directUpdateStudentAction(
+    studentId: string,
+    updatedData: Record<string, unknown>
+): Promise<DirectUpdateResult> {
+    const session = await getSession();
+    if (!session || session.role !== "SUPER_ADMIN") {
+        throw new Error("Không có quyền thao tác trực tiếp");
+    }
+
+    const oldStudent = await prisma.student.findUnique({
+        where: { id: studentId },
+        include: { user: true },
+    });
+
+    if (!oldStudent) {
+        throw new Error("Không tìm thấy môn sinh");
+    }
+
+    const payload = { ...updatedData };
+    let parsedDateOfBirth: Date | undefined = undefined;
+
+    if (payload.dateOfBirth && typeof payload.dateOfBirth === "string") {
+        parsedDateOfBirth = new Date(payload.dateOfBirth);
+        payload.dateOfBirth = parsedDateOfBirth;
+    } else if (payload.dateOfBirth instanceof Date) {
+        parsedDateOfBirth = payload.dateOfBirth;
+    }
+
+    if (payload.joinDate && typeof payload.joinDate === "string") {
+        payload.joinDate = new Date(payload.joinDate);
+    }
+
+    const { permissions, ...studentUpdateFields } = payload as UpdateStudentPayload & { permissions?: Record<string, string> };
+
+    const changes: string[] = [];
+    Object.keys(studentUpdateFields).forEach((key) => {
+        const newVal = studentUpdateFields[key];
+        const oldVal = (oldStudent as Record<string, unknown>)[key];
+        const stringNew = newVal instanceof Date ? newVal.toISOString().split("T")[0] : String(newVal ?? "");
+        const stringOld = oldVal instanceof Date ? oldVal.toISOString().split("T")[0] : String(oldVal ?? "");
+        if (stringNew !== stringOld) {
+            changes.push(`Mục [${key}]: "${stringOld || 'trống'}" ➔ "${stringNew || 'trống'}"`);
+        }
+    });
+
+    const studentCode = oldStudent.studentCode || "";
+
+    await prisma.$transaction(async (tx) => {
+        await tx.student.update({
+            where: { id: studentId },
+            data: studentUpdateFields as Parameters<typeof tx.student.update>[0]["data"],
+        });
+
+        const userUpdateData: { name?: string; username?: string; passwordHash?: string } = {};
+
+        if (studentUpdateFields.fullName && typeof studentUpdateFields.fullName === "string") {
+            userUpdateData.name = studentUpdateFields.fullName;
+
+            const cleanName = studentUpdateFields.fullName.trim().toLowerCase().replace(/\s+/g, "");
+            const nameParts = studentUpdateFields.fullName.trim().split(/\s+/);
+            const lastName = nameParts[0] ? nameParts[0].toLowerCase() : "";
+            const firstName = nameParts.length > 1 ? nameParts[nameParts.length - 1].toLowerCase() : cleanName;
+
+            if (studentCode) {
+                userUpdateData.username = `${lastName}${firstName}${studentCode.toLowerCase()}`.replace(/[^a-z0-9]/g, "");
+            }
+        }
+
+        if (parsedDateOfBirth && !isNaN(parsedDateOfBirth.getTime())) {
+            userUpdateData.passwordHash = parsedDateOfBirth.getFullYear().toString();
+        }
+
+        if (Object.keys(userUpdateData).length > 0) {
+            await tx.user.updateMany({
+                where: { studentId },
+                data: userUpdateData,
+            });
+        }
+
+        if (permissions && studentUpdateFields.title === "SHIDOIN") {
+            await tx.coachPermission.upsert({
+                where: { studentId },
+                update: permissions,
+                create: {
+                    studentId,
+                    ...permissions,
+                },
+            });
+        }
+    });
+
+    revalidatePath("/admin/approvals");
+    revalidatePath(`/students/${studentId}`);
+    revalidatePath("/");
+
+    return {
+        success: true,
+        status: "DIRECT_UPDATED",
+        message: changes.length > 0
+            ? `Super Admin đã cập nhật trực tiếp cơ sở dữ liệu. Các thay đổi:\n- ${changes.join("\n- ")}`
+            : "Không có trường dữ liệu nào thay đổi.",
+        changes,
+    };
+}
+
+// 5. HLV gửi yêu cầu chỉnh sửa thông tin môn sinh
+export async function requestStudentUpdateByCoach(
+    studentId: string,
+    updatedData: Record<string, unknown>
+): Promise<ApprovalResult> {
+    const session = await getSession();
+    if (!session || (session.role !== "COACH" && session.role !== "SUPER_ADMIN")) {
+        throw new Error("Không có quyền gửi yêu cầu chỉnh sửa");
+    }
+
+    const student = await prisma.student.findUnique({ where: { id: studentId } });
+    if (!student) {
+        throw new Error("Không tìm thấy môn sinh");
+    }
+
+    const sessionRecord = session as Record<string, unknown>;
+    const coachNameStr = typeof sessionRecord.name === "string"
+        ? sessionRecord.name
+        : typeof sessionRecord.username === "string"
+            ? sessionRecord.username
+            : "HLV";
+
+    await prisma.pendingStudentChange.create({
+        data: {
+            studentId,
+            coachName: coachNameStr,
+            changedData: JSON.stringify(updatedData),
+            status: "PENDING",
+        },
+    });
+
+    revalidatePath("/admin/approvals");
+    revalidatePath(`/students/${studentId}`);
+    revalidatePath("/");
+
+    return { success: true };
+}
+
 // 1. Phê duyệt hoặc từ chối ảnh thẻ
 export async function handleAvatarApproval(
     studentId: string,
@@ -105,7 +256,7 @@ export async function handleCreationApproval(
     return { success: true };
 }
 
-// 3. Phê duyệt hoặc từ chối yêu cầu chỉnh sửa thông tin (Kiểm tra thực tế Database và trả về chi tiết)
+// 3. Phê duyệt hoặc từ chối yêu cầu chỉnh sửa thông tin
 export async function handleEditApproval(
     changeId: string,
     action: "APPROVE" | "REJECT",
@@ -213,7 +364,6 @@ export async function handleEditApproval(
             });
         });
 
-        // KIỂM TRA LẠI DATABASE SAU KHI LƯU ĐỂ TRÁNH BÁO ẢO
         const verifiedStudent = await prisma.student.findUnique({
             where: { id: pendingChange.studentId },
         });
