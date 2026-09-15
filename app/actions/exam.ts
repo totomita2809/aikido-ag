@@ -473,3 +473,28 @@ export async function finalizeExamWithBeltPromotion(data: {
     revalidatePath("/");
     return { success: true };
 }
+
+// app/actions/exam.ts
+
+export async function rejectExamScores(examId: string, reason?: string) {
+    const session = await getSession();
+    if (!session || session.role !== "SUPER_ADMIN") {
+        throw new Error("Chỉ HLV Trưởng mới có quyền từ chối bảng điểm");
+    }
+
+    // Đổi trạng thái thí sinh về REJECTED kèm ghi chú lý do
+    await prisma.examCandidate.updateMany({
+        where: {
+            examSessionId: examId,
+            resultStatus: "PENDING_APPROVAL",
+        },
+        data: {
+            resultStatus: "REJECTED",
+            notes: reason ? `[Bị từ chối bởi HLV Trưởng]: ${reason}` : "Bảng điểm bị từ chối",
+        },
+    });
+
+    revalidatePath("/admin/approvals");
+    revalidatePath("/promotions");
+    return { success: true };
+}

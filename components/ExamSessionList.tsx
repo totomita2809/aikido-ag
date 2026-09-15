@@ -124,8 +124,8 @@ export default function ExamSessionList({
                         <div
                             key={exam.id}
                             className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm overflow-hidden transition-all ${isUserInExam
-                                    ? "border-red-500/80 ring-2 ring-red-500/20 dark:border-red-500/80"
-                                    : "border-slate-200 dark:border-slate-800"
+                                ? "border-red-500/80 ring-2 ring-red-500/20 dark:border-red-500/80"
+                                : "border-slate-200 dark:border-slate-800"
                                 }`}
                         >
                             <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800">
@@ -162,19 +162,22 @@ export default function ExamSessionList({
                                 </div>
 
                                 <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                                    {/* Modal chấm điểm: Cả SUPER_ADMIN và HLV đều mở được */}
+                                    <ExamGradingModal exam={exam} isSuperAdmin={isSuperAdmin} />
+
+                                    {/* Nút Xuất Word đưa ra ngoài để tài khoản HLV cũng thấy và xuất được file in */}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleExportAgain(exam)}
+                                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                                    >
+                                        <FileDown className="w-3.5 h-3.5 text-blue-600" />
+                                        <span>Xuất lại Word</span>
+                                    </button>
+
+                                    {/* Các chức năng chỉ dành riêng cho HLV Trưởng */}
                                     {isSuperAdmin && (
                                         <>
-                                            <ExamGradingModal exam={exam} isSuperAdmin={isSuperAdmin} />
-
-                                            <button
-                                                type="button"
-                                                onClick={() => handleExportAgain(exam)}
-                                                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                                            >
-                                                <FileDown className="w-3.5 h-3.5 text-blue-600" />
-                                                <span>Xuất lại Word</span>
-                                            </button>
-
                                             <EditExamModal
                                                 exam={exam}
                                                 coaches={coaches}
@@ -231,8 +234,8 @@ export default function ExamSessionList({
                                                     </div>
                                                     <span
                                                         className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold self-start sm:self-center ${ex.role === "Chấm chính"
-                                                                ? "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200 dark:border-red-900"
-                                                                : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                                                            ? "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200 dark:border-red-900"
+                                                            : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
                                                             }`}
                                                     >
                                                         {ex.role}

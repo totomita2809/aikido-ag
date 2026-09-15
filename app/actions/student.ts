@@ -329,84 +329,86 @@ export async function createStudent(formData: FormData) {
     };
 }
 
-export async function updateStudent(id: string, formData: FormData) {
+export async function updateStudent(id: string, formData: FormData): Promise<{
+    success: boolean;
+    noChange?: boolean;
+    message?: string;
+}> {
     const session = await getSession();
     if (!session) {
         throw new Error("Bạn chưa đăng nhập");
     }
 
-    const title = formData.get("title") as string;
-    const dojoRaw = (formData.get("dojo") as string) || DOJO_CONFIGS.HAYATE.key;
-    const dojo = title === "SHIDOIN" ? "BOTH" : dojoRaw;
-
-    const avatarRaw = formData.get("avatar") as string | null;
-    const avatar = avatarRaw && avatarRaw.trim() !== "" ? avatarRaw.trim() : null;
-
-    const fullName = formData.get("fullName") as string;
-    const studentCodeRaw = (formData.get("studentCode") as string) || "";
-    const dateOfBirthStr = formData.get("dateOfBirth") as string;
-    const gender = formData.get("gender") as string;
-    const phone = formData.get("phone") as string;
-    const parentPhone = formData.get("parentPhone") as string;
-    const emailRaw = formData.get("email") as string;
-    const email = emailRaw && emailRaw.trim() !== "" ? emailRaw.trim() : null;
-    const address = formData.get("address") as string;
-    const currentRank = formData.get("currentRank") as string;
-    const joinDateStr = formData.get("joinDate") as string;
-    const status = formData.get("status") as string;
-    const healthNote = formData.get("healthNote") as string;
-
-    const cleanCode = studentCodeRaw.trim().toUpperCase();
-
-    // Tách phần số đuôi sau tiền tố
-    const match = cleanCode.match(/\d+$/);
-    const suffix = match ? match[0] : cleanCode.replace(new RegExp(`^(${DOJO_CONFIGS.HAYATE.codePrefix}-|${DOJO_CONFIGS.TACHI.codePrefix}-|HLV-)`), "");
-
-    // Kiểm tra trùng số đuôi trên toàn hệ thống (loại trừ chính bản thân môn sinh đang sửa)
-    const existingStudent = await prisma.student.findFirst({
-        where: {
-            id: { not: id },
-            OR: [
-                { studentCode: `${DOJO_CONFIGS.HAYATE.codePrefix}-${suffix}` },
-                { studentCode: `${DOJO_CONFIGS.TACHI.codePrefix}-${suffix}` },
-                { studentCode: `HLV-${suffix}` },
-                { studentCode: cleanCode },
-            ],
-        },
+    // 1. Truy vấn đối chiếu dữ liệu gốc từ DB
+    const currentStudent = await prisma.student.findUnique({
+        where: { id },
+        include: { coachPermission: true },
     });
 
-    if (existingStudent) {
-        throw new Error(`Mã số "${suffix}" đã được sử dụng bởi môn sinh ${existingStudent.fullName} (${existingStudent.studentCode}). Vui lòng chọn số khác!`);
+    if (!currentStudent) {
+        throw new Error("Không tìm thấy môn sinh");
     }
 
-    const dateOfBirth = parseVNDate(dateOfBirthStr);
-    const joinDate = parseVNDate(joinDateStr);
+    const title = (formData.get("title") as string) || currentStudent.title || "MEMBER";
+    const dojoRaw = (formData.get("dojo") as string) || currentStudent.dojo;
+    const dojo = title === "SHIDOIN" ? "BOTH" : dojoRaw;
 
-    const updateData: Record<string, unknown> = {
-        avatar,
-        fullName,
-        studentCode: cleanCode,
-        dateOfBirth,
-        gender: gender || "Nam",
-        phone: phone || null,
-        parentPhone: parentPhone ? parentPhone.trim() : null,
-        email,
-        address: address || null,
-        healthNote: healthNote ? healthNote.trim() : null,
-        dojo,
-        currentRank: currentRank || AIKIDO_RANKS[0],
-        status: status || "ACTIVE",
-    };
+    // 2. Bảo toàn ảnh thẻ: Nếu không tải ảnh mới, giữ nguyên 100% ảnh cũ trong DB
+    const avatarRaw = formData.get("avatar") as string | null;
+    const avatar = avatarRaw && avatarRaw.trim() !== "" ? avatarRaw.trim() : currentStudent.avatar;
 
-    if (joinDate) {
-        updateData.joinDate = joinDate;
+    const fullName = ((formData.get("fullName") as string) || currentStudent.fullName).trim();
+    const studentCodeRaw = (formData.get("studentCode") as string) || currentStudent.studentCode;
+    const cleanCode = studentCodeRaw.trim().toUpperCase();
+
+    const dateOfBirthStr = formData.get("dateOfBirth") as string | null;
+    const dateOfBirth = dateOfBirthStr ? parseVNDate(dateOfBirthStr) : currentStudent.dateOfBirth;
+
+    const gender = (formData.get("gender") as string) || currentStudent.gender || "Nam";
+    const phoneRaw = formData.get("phone") as string | null;
+    const phone = phoneRaw && phoneRaw.trim() !== "" ? phoneRaw.trim() : null;
+
+    const parentPhoneRaw = formData.get("parentPhone") as string | null;
+    const parentPhone = parentPhoneRaw && parentPhoneRaw.trim() !== "" ? parentPhoneRaw.trim() : null;
+
+    const emailRaw = formData.get("email") as string | null;
+    const email = emailRaw && emailRaw.trim() !== "" ? emailRaw.trim() : null;
+
+    const addressRaw = formData.get("address") as string | null;
+    const address = addressRaw && addressRaw.trim() !== "" ? addressRaw.trim() : null;
+
+    const currentRank = (formData.get("currentRank") as string) || currentStudent.currentRank;
+    const status = (formData.get("status") as string) || currentStudent.status || "ACTIVE";
+
+    const healthNoteRaw = formData.get("healthNote") as string | null;
+    const healthNote = healthNoteRaw && healthNoteRaw.trim() !== "" ? healthNoteRaw.trim() : null;
+
+    const joinDateStr = formData.get("joinDate") as string | null;
+    const joinDate = joinDateStr ? (parseVNDate(joinDateStr) || currentStudent.joinDate) : currentStudent.joinDate;
+
+    // Kiểm tra trùng số đuôi trên toàn hệ thống (nếu có thay đổi mã)
+    if (cleanCode !== currentStudent.studentCode) {
+        const match = cleanCode.match(/\d+$/);
+        const suffix = match ? match[0] : cleanCode.replace(new RegExp(`^(${DOJO_CONFIGS.HAYATE.codePrefix}-|${DOJO_CONFIGS.TACHI.codePrefix}-|HLV-)`), "");
+
+        const existingStudent = await prisma.student.findFirst({
+            where: {
+                id: { not: id },
+                OR: [
+                    { studentCode: `${DOJO_CONFIGS.HAYATE.codePrefix}-${suffix}` },
+                    { studentCode: `${DOJO_CONFIGS.TACHI.codePrefix}-${suffix}` },
+                    { studentCode: `HLV-${suffix}` },
+                    { studentCode: cleanCode },
+                ],
+            },
+        });
+
+        if (existingStudent) {
+            throw new Error(`Mã số "${suffix}" đã được sử dụng bởi môn sinh ${existingStudent.fullName} (${existingStudent.studentCode}). Vui lòng chọn số khác!`);
+        }
     }
 
-    if (title) {
-        updateData.title = title;
-    }
-
-    const permissions = {
+    const permissions: Record<string, string> = {
         canCreateStudent: (formData.get("canCreateStudent") as string) || "VIEW",
         canEditFullName: (formData.get("canEditFullName") as string) || "VIEW",
         canEditRank: (formData.get("canEditRank") as string) || "VIEW",
@@ -419,23 +421,85 @@ export async function updateStudent(id: string, formData: FormData) {
         canEditStatus: (formData.get("canEditStatus") as string) || "VIEW",
     };
 
+    // 3. So sánh dữ liệu để chặn spam lệnh nếu không có trường nào thay đổi
+    const isDobSame = (currentStudent.dateOfBirth?.getTime() ?? null) === (dateOfBirth?.getTime() ?? null);
+    const isJoinDateSame = (currentStudent.joinDate?.getTime() ?? null) === (joinDate?.getTime() ?? null);
+
+    let isPermissionsSame = true;
+    if (title === "SHIDOIN") {
+        const oldPerms = currentStudent.coachPermission as Record<string, string> | null;
+        if (!oldPerms) {
+            isPermissionsSame = false;
+        } else {
+            isPermissionsSame = Object.keys(permissions).every((k) => permissions[k] === oldPerms[k]);
+        }
+    }
+
+    const hasChanges =
+        currentStudent.fullName !== fullName ||
+        currentStudent.studentCode !== cleanCode ||
+        currentStudent.avatar !== avatar ||
+        currentStudent.gender !== gender ||
+        (currentStudent.phone || null) !== phone ||
+        (currentStudent.parentPhone || null) !== parentPhone ||
+        (currentStudent.email || null) !== email ||
+        (currentStudent.address || null) !== address ||
+        currentStudent.currentRank !== currentRank ||
+        currentStudent.status !== status ||
+        (currentStudent.healthNote || null) !== healthNote ||
+        currentStudent.dojo !== dojo ||
+        currentStudent.title !== title ||
+        !isDobSame ||
+        !isJoinDateSame ||
+        !isPermissionsSame;
+
+    if (!hasChanges) {
+        return {
+            success: false,
+            noChange: true,
+            message: "Dữ liệu không có thay đổi nào so với hồ sơ hiện tại trên hệ thống.",
+        };
+    }
+
+    const updateData = {
+        avatar,
+        fullName,
+        studentCode: cleanCode,
+        dateOfBirth,
+        gender,
+        phone,
+        parentPhone,
+        email,
+        address,
+        healthNote,
+        dojo,
+        currentRank,
+        status,
+        joinDate,
+        title,
+    };
+
+    // TRƯỜNG HỢP 1: HLV TRƯỞNG (SUPER_ADMIN) CẬP NHẬT TRỰC TIẾP
     if (session.role === "SUPER_ADMIN") {
         await prisma.student.update({
             where: { id },
             data: updateData,
         });
 
-        // Đồng bộ chuẩn username, name, email, role, và passwordHash vào bảng User liên kết
-        if (fullName) {
+        // Chỉ đồng bộ tài khoản User nếu có thay đổi trường định danh
+        const isIdentityChanged =
+            currentStudent.fullName !== fullName ||
+            currentStudent.studentCode !== cleanCode ||
+            currentStudent.email !== email ||
+            currentStudent.title !== title ||
+            !isDobSame;
+
+        if (isIdentityChanged) {
             const creds = generateStudentCredentials({
                 fullName,
                 studentCode: cleanCode,
                 dateOfBirth,
             });
-
-            const syncedUsername = creds.username;
-            const syncedEmail = email || `${syncedUsername}@aikidoangiang.local`;
-            const targetRole = title === "SHIDOIN" ? "COACH" : "STUDENT";
 
             const userUpdatePayload: {
                 name: string;
@@ -445,12 +509,13 @@ export async function updateStudent(id: string, formData: FormData) {
                 passwordHash?: string;
             } = {
                 name: fullName,
-                username: syncedUsername,
-                email: syncedEmail,
-                role: targetRole,
+                username: creds.username,
+                email: email || `${creds.username}@aikidoangiang.local`,
+                role: title === "SHIDOIN" ? "COACH" : "STUDENT",
             };
 
-            if (dateOfBirth) {
+            // Chỉ đặt lại mật khẩu theo năm sinh khi ngày sinh thực sự bị đổi
+            if (!isDobSame && dateOfBirth) {
                 userUpdatePayload.passwordHash = await bcrypt.hash(creds.initialPassword, 10);
             }
 
@@ -477,10 +542,10 @@ export async function updateStudent(id: string, formData: FormData) {
 
         revalidatePath("/students");
         revalidatePath(`/students/${id}`);
-        return { success: true };
+        return { success: true, message: "Đã cập nhật dữ liệu thành công!" };
     }
 
-    // Tra cứu mã môn sinh của Coach đang gửi yêu cầu
+    // TRƯỜNG HỢP 2: HLV GỬI YÊU CẦU DUYỆT (CHƯA ĐỤNG ĐẾN DB CHÍNH & USER)
     const currentCoach = await prisma.student.findFirst({
         where: { user: { id: session.userId } },
         select: { studentCode: true, fullName: true },
@@ -503,7 +568,7 @@ export async function updateStudent(id: string, formData: FormData) {
     });
 
     revalidatePath("/admin/approvals");
-    return { success: true };
+    return { success: true, message: "Đã gửi yêu cầu chỉnh sửa đến HLV Trưởng xét duyệt!" };
 }
 
 export async function deleteStudent(id: string) {

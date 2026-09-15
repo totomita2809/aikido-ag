@@ -2,8 +2,12 @@
 
 import { useState, useTransition } from "react";
 import Image from "next/image";
-import { UserCheck, Image as ImageIcon, UserPlus, Edit3, X, Shield, Clock, User, Check, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { UserCheck, Image as ImageIcon, UserPlus, Edit3, X, Shield, Clock, User, Check, ArrowRight, Award, XCircle } from "lucide-react";
 import { handleAvatarApproval, handleCreationApproval, handleEditApproval } from "@/app/actions/approval";
+import { finalizeExamWithBeltPromotion, rejectExamScores } from "@/app/actions/exam";
+import ExamGradingModal from "@/components/ExamGradingModal";
+import { ExamSessionFull } from "@/components/ExamSessionList";
 
 interface Props {
     pendingAvatars: Array<{
@@ -55,6 +59,7 @@ interface Props {
             coachPermission?: Record<string, string> | null;
         };
     }>;
+    pendingExams?: ExamSessionFull[];
 }
 
 const ALL_STUDENT_KEYS = [
@@ -152,11 +157,84 @@ function formatVNTime(dateInput?: Date | string | null) {
     }).format(d);
 }
 
-export default function ApprovalsClient({ pendingAvatars, pendingCreations, pendingEdits }: Props) {
-    const [tab, setTab] = useState<"AVATARS" | "CREATIONS" | "EDITS">("AVATARS");
+// FORM CHUNG: Modal Nhập Lý Do Từ Chối Tái Sử Dụng
+function CommonRejectModal({
+    isOpen,
+    title,
+    placeholder,
+    reason,
+    isPending,
+    onChangeReason,
+    onConfirm,
+    onClose,
+}: {
+    isOpen: boolean;
+    title: string;
+    placeholder?: string;
+    reason: string;
+    isPending: boolean;
+    onChangeReason: (val: string) => void;
+    onConfirm: () => void;
+    onClose: () => void;
+}) {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <XCircle className="w-4 h-4 text-red-600" />
+                        <span>{title}</span>
+                    </h3>
+                    <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Vui lòng nhập lý do từ chối để phản hồi lại cho Huấn luyện viên nắm rõ:
+                </p>
+                <textarea
+                    value={reason}
+                    onChange={(e) => onChangeReason(e.target.value)}
+                    rows={3}
+                    placeholder={placeholder || "Nhập lý do cụ thể..."}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-red-500 resize-none"
+                />
+                <div className="flex justify-end space-x-2 pt-2">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={onConfirm}
+                        className="px-4 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                        Xác nhận từ chối
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function ApprovalsClient({
+    pendingAvatars,
+    pendingCreations,
+    pendingEdits,
+    pendingExams = [],
+}: Props) {
+    const router = useRouter();
+    const defaultTab = pendingExams.length > 0 ? "EXAMS" : "AVATARS";
+    const [tab, setTab] = useState<"AVATARS" | "CREATIONS" | "EDITS" | "EXAMS">(defaultTab);
     const [isPending, startTransition] = useTransition();
 
-    const [rejectModal, setRejectModal] = useState<{ id: string; type: "AVATAR" | "CREATION" | "EDIT" } | null>(null);
+    // Quản lý Modal từ chối dùng chung
+    const [rejectModal, setRejectModal] = useState<{ id: string; type: "AVATAR" | "CREATION" | "EDIT" | "EXAM" } | null>(null);
     const [rejectReason, setRejectReason] = useState("");
 
     const [actionResultModal, setActionResultModal] = useState<{
@@ -184,20 +262,77 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
 
     const confirmReject = () => {
         if (!rejectModal) return;
-        startTransition(() => {
-            void (async () => {
-                if (rejectModal.type === "AVATAR") {
-                    await handleAvatarApproval(rejectModal.id, "REJECT", rejectReason);
-                } else if (rejectModal.type === "CREATION") {
-                    await handleCreationApproval(rejectModal.id, "REJECT", rejectReason);
-                } else {
-                    await handleEditApproval(rejectModal.id, "REJECT", rejectReason);
-                }
-                setRejectModal(null);
-                setRejectReason("");
-            })();
+        startTransition(async () => {
+            if (rejectModal.type === "AVATAR") {
+                await handleAvatarApproval(rejectModal.id, "REJECT", rejectReason);
+            } else if (rejectModal.type === "CREATION") {
+                await handleCreationApproval(rejectModal.id, "REJECT", rejectReason);
+            } else if (rejectModal.type === "EDIT") {
+                await handleEditApproval(rejectModal.id, "REJECT", rejectReason);
+            } else if (rejectModal.type === "EXAM") {
+                await rejectExamScores(rejectModal.id, rejectReason);
+            }
+            setRejectModal(null);
+            setRejectReason("");
+            router.refresh();
         });
     };
+
+    const handleApproveExamScores = (exam: ExamSessionFull) => {
+        const pendingCandidates = exam.candidates.filter(
+            (c) => (c as unknown as { resultStatus?: string }).resultStatus === "PENDING_APPROVAL"
+        );
+
+        if (!confirm(`Thầy có chắc chắn muốn duyệt bảng điểm và phong đai cho ${pendingCandidates.length} thí sinh của kỳ thi "${exam.title}"?`)) {
+            return;
+        }
+
+        startTransition(async () => {
+            try {
+                await finalizeExamWithBeltPromotion({
+                    examId: exam.id,
+                    promotions: pendingCandidates.map((c) => {
+                        const candidateData = c as unknown as {
+                            finalScore?: number;
+                            promotedRank?: string;
+                            titleHonor?: string;
+                        };
+                        const score = candidateData.finalScore ?? 0;
+                        return {
+                            candidateId: c.id,
+                            studentId: c.student.id,
+                            targetRank: c.targetRank,
+                            assignedRank: candidateData.promotedRank || c.targetRank,
+                            isPassed: score >= 5.0,
+                            finalScore: score,
+                            titleHonor: candidateData.titleHonor,
+                        };
+                    }),
+                });
+                setActionResultModal({
+                    type: "SUCCESS",
+                    title: "Duyệt kỳ thi thành công!",
+                    message: `Đã phê duyệt bảng điểm và hoàn tất phong cấp đai mới cho toàn bộ thí sinh.`,
+                });
+                router.refresh();
+                setTimeout(() => setActionResultModal(null), 2500);
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "Lỗi khi duyệt kỳ thi";
+                setActionResultModal({
+                    type: "ERROR",
+                    title: "Lỗi duyệt điểm",
+                    message,
+                });
+            }
+        });
+    };
+
+    const totalExamCandidates = pendingExams.reduce((sum, e) => {
+        const count = e.candidates.filter(
+            (c) => (c as unknown as { resultStatus?: string }).resultStatus === "PENDING_APPROVAL"
+        ).length;
+        return sum + count;
+    }, 0);
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
@@ -207,15 +342,24 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                 </div>
                 <div>
                     <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Trung Tâm Duyệt Tác Vụ</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Đối chiếu hồ sơ gốc, điều chỉnh chức vụ và phân quyền HLV trước khi phê duyệt</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Kiểm tra, chỉnh sửa điểm thi và phê duyệt các tác vụ của Huấn luyện viên</p>
                 </div>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex space-x-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+            <div className="flex space-x-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
+                <button
+                    onClick={() => setTab("EXAMS")}
+                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shrink-0 ${tab === "EXAMS" ? "bg-red-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        }`}
+                >
+                    <Award className="w-4 h-4" />
+                    <span>Điểm thi ({totalExamCandidates})</span>
+                </button>
+
                 <button
                     onClick={() => setTab("AVATARS")}
-                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === "AVATARS" ? "bg-red-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shrink-0 ${tab === "AVATARS" ? "bg-red-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                         }`}
                 >
                     <ImageIcon className="w-4 h-4" />
@@ -224,7 +368,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
 
                 <button
                     onClick={() => setTab("CREATIONS")}
-                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === "CREATIONS" ? "bg-red-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shrink-0 ${tab === "CREATIONS" ? "bg-red-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                         }`}
                 >
                     <UserPlus className="w-4 h-4" />
@@ -233,7 +377,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
 
                 <button
                     onClick={() => setTab("EDITS")}
-                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === "EDITS" ? "bg-red-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shrink-0 ${tab === "EDITS" ? "bg-red-600 text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                         }`}
                 >
                     <Edit3 className="w-4 h-4" />
@@ -241,7 +385,102 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                 </button>
             </div>
 
-            {/* Tab 1: Pending Avatars */}
+            {/* TAB: ĐIỂM THI CHỜ DUYỆT */}
+            {tab === "EXAMS" && (
+                <div className="space-y-4">
+                    {pendingExams.length === 0 ? (
+                        <p className="text-sm text-slate-500 py-8 text-center">Không có bảng điểm kỳ thi nào đang chờ duyệt.</p>
+                    ) : (
+                        pendingExams.map((exam) => {
+                            const pendingCandidates = exam.candidates.filter(
+                                (c) => (c as unknown as { resultStatus?: string }).resultStatus === "PENDING_APPROVAL"
+                            );
+
+                            return (
+                                <div key={exam.id} className="p-5 border rounded-2xl bg-white dark:bg-slate-900 space-y-4 shadow-xs">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                                        <div>
+                                            <div className="flex items-center space-x-2">
+                                                <span className="font-bold text-base text-slate-900 dark:text-white">{exam.title}</span>
+                                                <span className="font-mono text-xs font-bold text-red-600 px-2 py-0.5 bg-red-50 dark:bg-red-950/50 rounded">
+                                                    {pendingCandidates.length} Thí sinh chờ duyệt
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                Ngày thi: {formatVNTime(exam.examDate)} • Sân: {exam.dojo === "TACHI" ? "Sân Tachi" : exam.dojo === "HAYATE" ? "Aikido Hayate" : "Cả 2 sân"}
+                                            </p>
+                                        </div>
+
+                                        {/* CÁC NÚT THAO TÁC: Xem/chỉnh sửa trực tiếp, Từ chối, Duyệt */}
+                                        <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                                            <ExamGradingModal exam={exam} isSuperAdmin={true} />
+
+                                            <button
+                                                type="button"
+                                                disabled={isPending}
+                                                onClick={() => setRejectModal({ id: exam.id, type: "EXAM" })}
+                                                className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 rounded-lg transition-colors cursor-pointer"
+                                            >
+                                                Từ chối
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                disabled={isPending}
+                                                onClick={() => handleApproveExamScores(exam)}
+                                                className="px-4 py-1.5 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-bold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
+                                            >
+                                                <Check className="w-3.5 h-3.5" />
+                                                <span>Duyệt & Phong đai</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
+                                        <table className="w-full text-left">
+                                            <thead className="bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300">
+                                                <tr>
+                                                    <th className="p-2.5">Mã số</th>
+                                                    <th className="p-2.5">Họ và tên</th>
+                                                    <th className="p-2.5">Cấp hiện tại</th>
+                                                    <th className="p-2.5 text-red-600">Lên đai đề xuất</th>
+                                                    <th className="p-2.5 text-center">Điểm HLV chấm</th>
+                                                    <th className="p-2.5 text-right">Danh hiệu / Ghi chú</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                {pendingCandidates.map((c) => {
+                                                    const candidateData = c as unknown as {
+                                                        finalScore?: number;
+                                                        promotedRank?: string;
+                                                        titleHonor?: string;
+                                                        notes?: string;
+                                                    };
+                                                    return (
+                                                        <tr key={c.id}>
+                                                            <td className="p-2.5 font-mono text-slate-500">{c.student.studentCode}</td>
+                                                            <td className="p-2.5 font-bold text-slate-900 dark:text-white">{c.student.fullName}</td>
+                                                            <td className="p-2.5 text-slate-500">{c.student.currentRank}</td>
+                                                            <td className="p-2.5 font-bold text-red-600 dark:text-red-400">{candidateData.promotedRank || c.targetRank}</td>
+                                                            <td className="p-2.5 text-center font-black text-slate-900 dark:text-white">{candidateData.finalScore ?? "—"}</td>
+                                                            <td className="p-2.5 text-right font-medium text-slate-500">
+                                                                {candidateData.titleHonor ? <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold mr-1">{candidateData.titleHonor}</span> : null}
+                                                                <span>{candidateData.notes || "—"}</span>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+            )}
+
+            {/* TAB 1: ẢNH THẺ */}
             {tab === "AVATARS" && (
                 <div className="space-y-4">
                     {pendingAvatars.length === 0 ? (
@@ -267,7 +506,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                         <button
                                             disabled={isPending}
                                             onClick={() => setRejectModal({ id: st.id, type: "AVATAR" })}
-                                            className="flex-1 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold transition-colors"
+                                            className="flex-1 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold transition-colors cursor-pointer"
                                         >
                                             Từ chối
                                         </button>
@@ -278,7 +517,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                                     void handleAvatarApproval(st.id, "APPROVE");
                                                 });
                                             }}
-                                            className="flex-1 py-1.5 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition-colors"
+                                            className="flex-1 py-1.5 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition-colors cursor-pointer"
                                         >
                                             Duyệt
                                         </button>
@@ -290,7 +529,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                 </div>
             )}
 
-            {/* Tab 2: Pending Creations */}
+            {/* TAB 2: MÔN SINH MỚI */}
             {tab === "CREATIONS" && (
                 <div className="space-y-4">
                     {pendingCreations.length === 0 ? (
@@ -328,7 +567,6 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             </div>
                                         </div>
 
-                                        {/* Dropdown chức vụ võ đường */}
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-200 dark:border-slate-800">
                                             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">
                                                 Chức vụ võ đường:
@@ -343,23 +581,13 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                                 <option value="SHIDOSHA">Lớp trưởng (SHIDOSHA)</option>
                                                 <option value="SHIDOIN">Huấn luyện viên (SHIDOIN)</option>
                                             </select>
-                                            {isShidoin ? (
-                                                <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-                                                    Đang nạp cấu hình phân quyền HLV đã chọn
-                                                </span>
-                                            ) : (
-                                                <span className="text-[11px] text-slate-400">
-                                                    Không phải HLV, bảng phân quyền tự động ẩn
-                                                </span>
-                                            )}
                                         </div>
 
-                                        {/* Bảng phân quyền chỉ hiện khi là SHIDOIN, chỉ có Xem / Sửa */}
                                         {isShidoin && (
                                             <div className="p-3.5 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/60 rounded-xl space-y-2 animate-in fade-in duration-150">
                                                 <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-900 dark:text-amber-300">
                                                     <Shield className="w-4 h-4 text-amber-600 shrink-0" />
-                                                    <span>Bảng phân quyền Huấn Luyện Viên đã chọn (Xem tính hợp lý):</span>
+                                                    <span>Bảng phân quyền Huấn Luyện Viên đã chọn:</span>
                                                 </div>
                                                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
                                                     {Object.entries(PERMISSION_LABELS).map(([k, label]) => {
@@ -389,7 +617,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             <button
                                                 disabled={isPending}
                                                 onClick={() => setRejectModal({ id: st.id, type: "CREATION" })}
-                                                className="px-4 py-2 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold transition-colors"
+                                                className="px-4 py-2 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold transition-colors cursor-pointer"
                                             >
                                                 Từ chối
                                             </button>
@@ -405,7 +633,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                                         );
                                                     });
                                                 }}
-                                                className="px-4 py-2 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-semibold inline-flex items-center space-x-1.5 transition-colors"
+                                                className="px-4 py-2 text-xs text-white bg-red-600 hover:bg-red-700 rounded-lg font-semibold inline-flex items-center space-x-1.5 transition-colors cursor-pointer"
                                             >
                                                 <Check className="w-3.5 h-3.5" />
                                                 <span>Duyệt môn sinh</span>
@@ -419,7 +647,7 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                 </div>
             )}
 
-            {/* Tab 3: Pending Edits */}
+            {/* TAB 3: SỬA HỒ SƠ */}
             {tab === "EDITS" && (
                 <div className="space-y-4">
                     {pendingEdits.length === 0 ? (
@@ -456,7 +684,6 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             </div>
                                         </div>
 
-                                        {/* Bảng so sánh đối chiếu: Hiển thị ĐẦY ĐỦ toàn bộ thông tin gốc, trường nào đổi mới sẽ so sánh */}
                                         <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
                                             <div className="grid grid-cols-12 bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-200 p-2.5 border-b border-slate-200 dark:border-slate-800">
                                                 <div className="col-span-3">Trường thông tin</div>
@@ -505,12 +732,6 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                                                         <span className="text-slate-700 dark:text-slate-300">{newDisplay}</span>
                                                                     )}
                                                                 </div>
-
-                                                                {key === "parentPhone" && isChanged && (
-                                                                    <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-lg text-[11px] text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
-                                                                        ⚠️ <strong>Lưu ý xác minh:</strong> Hãy liên hệ trực tiếp hoặc xác minh lại với phụ huynh trước khi duyệt số điện thoại phụ huynh mới để phòng trường hợp môn sinh điền số ảo!
-                                                                    </div>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     );
@@ -518,68 +739,11 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                             </div>
                                         </div>
 
-                                        {/* Dropdown chức vụ võ đường */}
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-200 dark:border-slate-800">
-                                            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">
-                                                Chức vụ võ đường:
-                                            </label>
-                                            <select
-                                                value={currentTitle}
-                                                onChange={(e) => handleTitleChange(item.id, e.target.value)}
-                                                className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500"
-                                            >
-                                                <option value="MEMBER">Môn sinh (MEMBER)</option>
-                                                <option value="FUKU_SHIDOSHA">Lớp phó (FUKU_SHIDOSHA)</option>
-                                                <option value="SHIDOSHA">Lớp trưởng (SHIDOSHA)</option>
-                                                <option value="SHIDOIN">Huấn luyện viên (SHIDOIN)</option>
-                                            </select>
-                                            {isShidoin ? (
-                                                <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-                                                    Đang nạp cấu hình phân quyền HLV đã chọn
-                                                </span>
-                                            ) : (
-                                                <span className="text-[11px] text-slate-400">
-                                                    Không phải HLV, bảng phân quyền tự động ẩn
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Bảng phân quyền chỉ hiện khi là SHIDOIN, chỉ có Xem / Sửa */}
-                                        {isShidoin && (
-                                            <div className="p-3.5 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/60 rounded-xl space-y-2 animate-in fade-in duration-150">
-                                                <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-900 dark:text-amber-300">
-                                                    <Shield className="w-4 h-4 text-amber-600 shrink-0" />
-                                                    <span>Bảng phân quyền Huấn Luyện Viên đã chọn (Xem tính hợp lý):</span>
-                                                </div>
-                                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
-                                                    {Object.entries(PERMISSION_LABELS).map(([k, label]) => {
-                                                        const curVal = activePermissions[item.id]?.[k] ?? ((coachSavedPerms as Record<string, string>)?.[k] || "VIEW");
-                                                        return (
-                                                            <div key={k} className="text-xs">
-                                                                <span className="block text-slate-600 dark:text-slate-400 text-[11px] font-medium truncate">{label}</span>
-                                                                <select
-                                                                    value={curVal === "NONE" ? "VIEW" : curVal}
-                                                                    onChange={(e) => handlePermChange(item.id, k, e.target.value, coachSavedPerms as Record<string, string>)}
-                                                                    className={`w-full mt-1 px-2 py-1 text-xs font-bold rounded border ${curVal === "EDIT"
-                                                                        ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-white dark:bg-slate-800"
-                                                                        : "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800"
-                                                                        }`}
-                                                                >
-                                                                    <option value="VIEW">Xem</option>
-                                                                    <option value="EDIT">Sửa</option>
-                                                                </select>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-
                                         <div className="flex items-center justify-end space-x-2 pt-2">
                                             <button
                                                 disabled={isPending}
                                                 onClick={() => setRejectModal({ id: item.id, type: "EDIT" })}
-                                                className="px-4 py-2 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold transition-colors"
+                                                className="px-4 py-2 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold transition-colors cursor-pointer"
                                             >
                                                 Từ chối
                                             </button>
@@ -626,48 +790,30 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                 </div>
             )}
 
-            {/* Modal Nhập lý do từ chối */}
-            {rejectModal && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-5 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
-                        <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="text-base font-bold text-slate-900 dark:text-white">Lý do từ chối</h3>
-                            <button onClick={() => setRejectModal(null)} className="p-1 text-slate-400 hover:text-slate-600">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <p className="text-xs text-slate-500">
-                            Vui lòng nhập lý do từ chối để phản hồi lại cho Huấn luyện viên nắm rõ:
-                        </p>
-                        <textarea
-                            value={rejectReason}
-                            onChange={(e) => setRejectReason(e.target.value)}
-                            rows={3}
-                            placeholder="Ví dụ: Mã môn sinh chưa đúng quy định, sai cấp đai, thiếu thông tin bắt buộc..."
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                        />
-                        <div className="flex justify-end space-x-2 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => setRejectModal(null)}
-                                className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                type="button"
-                                disabled={isPending}
-                                onClick={confirmReject}
-                                className="px-4 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-xs transition-colors"
-                            >
-                                Xác nhận từ chối
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* FORM CHUNG TỪ CHỐI TÁI SỬ DỤNG */}
+            <CommonRejectModal
+                isOpen={Boolean(rejectModal)}
+                title={
+                    rejectModal?.type === "EXAM"
+                        ? "Từ chối bảng điểm kỳ thi"
+                        : rejectModal?.type === "AVATAR"
+                            ? "Từ chối ảnh thẻ"
+                            : rejectModal?.type === "CREATION"
+                                ? "Từ chối duyệt môn sinh mới"
+                                : "Từ chối yêu cầu sửa đổi hồ sơ"
+                }
+                placeholder="Nhập lý do cụ thể (Ví dụ: Thang điểm chưa đạt chuẩn, sai thông tin môn sinh...)"
+                reason={rejectReason}
+                isPending={isPending}
+                onChangeReason={setRejectReason}
+                onConfirm={confirmReject}
+                onClose={() => {
+                    setRejectModal(null);
+                    setRejectReason("");
+                }}
+            />
 
-            {/* Modal Thông báo kết quả kiểm tra Database thực tế */}
+            {/* Modal Thông báo kết quả kiểm tra Database */}
             {actionResultModal && (
                 <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
                     <div className={`bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border ${actionResultModal.type === "SUCCESS" ? "border-emerald-500" : "border-red-500"} animate-in fade-in zoom-in-95 duration-150`}>
@@ -679,15 +825,6 @@ export default function ApprovalsClient({ pendingAvatars, pendingCreations, pend
                                 {actionResultModal.message}
                             </p>
                         </div>
-                        {actionResultModal.type === "ERROR" && (
-                            <button
-                                type="button"
-                                onClick={() => setActionResultModal(null)}
-                                className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
-                            >
-                                Đã hiểu & Xác nhận (Chụp màn hình báo IT)
-                            </button>
-                        )}
                     </div>
                 </div>
             )}

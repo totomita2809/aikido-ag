@@ -9,7 +9,7 @@ export default async function ApprovalsPage() {
         redirect("/students");
     }
 
-    const [pendingAvatars, pendingCreations, pendingEdits] = await Promise.all([
+    const [pendingAvatars, pendingCreations, pendingEdits, pendingExams] = await Promise.all([
         prisma.student.findMany({
             where: { avatarStatus: "PENDING" },
             select: {
@@ -76,6 +76,24 @@ export default async function ApprovalsPage() {
             },
             orderBy: { createdAt: "desc" },
         }),
+        prisma.examSession.findMany({
+            where: {
+                candidates: {
+                    some: {
+                        resultStatus: "PENDING_APPROVAL",
+                    },
+                },
+            },
+            include: {
+                examiners: true,
+                candidates: {
+                    include: {
+                        student: true,
+                    },
+                },
+            },
+            orderBy: { examDate: "desc" },
+        }),
     ]);
 
     return (
@@ -83,6 +101,7 @@ export default async function ApprovalsPage() {
             pendingAvatars={pendingAvatars}
             pendingCreations={pendingCreations as unknown as Parameters<typeof ApprovalsClient>[0]["pendingCreations"]}
             pendingEdits={pendingEdits as unknown as Parameters<typeof ApprovalsClient>[0]["pendingEdits"]}
+            pendingExams={pendingExams as unknown as Parameters<typeof ApprovalsClient>[0]["pendingExams"]}
         />
     );
 }

@@ -280,6 +280,13 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
         return computeCandidateScores(initialList);
     });
 
+    // Tự động kiểm tra và refresh dữ liệu mới nhất từ database mỗi khi mở modal
+    useEffect(() => {
+        if (isOpen) {
+            router.refresh();
+        }
+    }, [isOpen, router]);
+
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (hasUnsavedChanges) {
@@ -315,7 +322,9 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                 score: typeof j.score === "number" ? j.score : parseFloat(String(j.score)) || 0,
                             })),
                             finalScore: c.finalScore,
-                            resultStatus: c.isPassed ? "PASSED" : "FAILED",
+                            resultStatus: isSuperAdmin
+                                ? (c.isPassed ? "PASSED" : "FAILED")
+                                : "PENDING_APPROVAL",
                             titleHonor: c.titleHonor,
                             notes: c.notes,
                             promotedRank: c.promotedRank,
@@ -329,7 +338,7 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                 }
             }, 1200);
         },
-        [exam.id, isLocked]
+        [exam.id, isLocked, isSuperAdmin]
     );
 
     const updateJudgeScore = (candidateId: string, examinerId: string, val: string) => {
@@ -384,6 +393,18 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
     };
 
     const handleSaveManual = async () => {
+        // Chống spam: Nếu không có dữ liệu nào mới được sửa đổi
+        if (!hasUnsavedChanges && isSavedAtLeastOnce) {
+            setDialog({
+                isOpen: true,
+                type: "INFO",
+                title: "Dữ liệu chưa thay đổi",
+                message: "Bảng điểm hiện tại đã được gửi lên hệ thống và không có điểm số nào mới thay đổi. Không cần gửi lại để tránh trùng lặp.",
+                confirmText: "Đã hiểu",
+            });
+            return;
+        }
+
         setIsSavingManual(true);
         try {
             await saveExamScoresWithCarryOver({
@@ -401,7 +422,9 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                         score: typeof j.score === "number" ? j.score : parseFloat(String(j.score)) || 0,
                     })),
                     finalScore: c.finalScore,
-                    resultStatus: c.isPassed ? "PASSED" : "FAILED",
+                    resultStatus: isSuperAdmin
+                        ? (c.isPassed ? "PASSED" : "FAILED")
+                        : "PENDING_APPROVAL",
                     titleHonor: c.titleHonor,
                     notes: c.notes,
                     promotedRank: c.promotedRank,
@@ -416,8 +439,10 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                 setDialog({
                     isOpen: true,
                     type: "SUCCESS",
-                    title: "Lưu thành công & Điểm bảo lưu",
-                    message: "Bảng điểm đã được lưu. Các môn sinh sau có điểm vượt trần (trên 10.0) được bảo lưu tự động vào hồ sơ cho kỳ thi sau:",
+                    title: isSuperAdmin ? "Lưu thành công & Điểm bảo lưu" : "Đã gửi bảng điểm chờ HLV Trưởng duyệt",
+                    message: isSuperAdmin
+                        ? "Bảng điểm đã được lưu. Các môn sinh sau có điểm vượt trần (trên 10.0) được bảo lưu tự động vào hồ sơ cho kỳ thi sau:"
+                        : "Bảng điểm đã được lưu và chuyển về HLV Trưởng để duyệt chính thức. Điểm vượt trần dự kiến được bảo lưu:",
                     confirmText: "Đồng ý",
                     customContent: (
                         <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
@@ -450,8 +475,10 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                 setDialog({
                     isOpen: true,
                     type: "SUCCESS",
-                    title: "Lưu hoàn tất",
-                    message: "Đã lưu bảng điểm thành công vào hệ thống!",
+                    title: isSuperAdmin ? "Lưu hoàn tất" : "Đã gửi bảng điểm",
+                    message: isSuperAdmin
+                        ? "Đã lưu bảng điểm thành công vào hệ thống!"
+                        : "Huấn luyện viên đã lưu và gửi bảng điểm thành công, đang đợi HLV Trưởng phê duyệt chính thức!",
                     confirmText: "Đóng",
                 });
             }
@@ -545,7 +572,7 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
             isPassed: c.isPassed,
         }));
 
-        generateExamResultDocx(new Date(), exportItems);
+        generateExamResultDocx(new Date(exam.examDate), exportItems);
     };
 
     return (
@@ -587,6 +614,7 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                 </div>
                                 <p className="text-xs text-slate-500 mt-0.5">
                                     {exam.title} • {activeJudges.length} giám khảo chấm điểm thực tế • Thang điểm 0 - 10
+                                    {!isSuperAdmin && " • Quyền HLV: Nhập điểm và gửi duyệt"}
                                 </p>
                             </div>
 
@@ -611,7 +639,7 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                     ) : (
                                         <Save className="w-4 h-4" />
                                     )}
-                                    <span>Lưu</span>
+                                    <span>{isSuperAdmin ? "Lưu" : "Lưu & Gửi HLV Trưởng duyệt"}</span>
                                 </button>
 
                                 {isSuperAdmin && (isSavedAtLeastOnce || !hasUnsavedChanges) && (
@@ -679,7 +707,7 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                     key={st.candidateId}
                                     className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col xl:flex-row xl:items-start justify-between gap-5"
                                 >
-                                    {/* CỘT 1: THÔNG TIN MÔN SINH, UKE & ĐIỂM THI ĐÃ DỜI LÊN TRÊN */}
+                                    {/* CỘT 1: THÔNG TIN MÔN SINH, UKE & ĐIỂM THI */}
                                     <div className="flex flex-col space-y-3 min-w-[280px] shrink-0">
                                         <div className="flex items-start space-x-3.5">
                                             <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700 relative border border-slate-200 dark:border-slate-600 shrink-0 flex items-center justify-center">
@@ -700,12 +728,12 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                                     {st.titleHonor && (
                                                         <span
                                                             className={`px-2 py-0.5 rounded-full text-[10px] font-black ${st.titleHonor === "THỦ KHOA"
-                                                                    ? "bg-amber-100 text-amber-800 border border-amber-300"
-                                                                    : st.titleHonor === "Á KHOA"
-                                                                        ? "bg-slate-200 text-slate-800"
-                                                                        : st.titleHonor === "QUÝ KHOA"
-                                                                            ? "bg-orange-100 text-orange-800"
-                                                                            : "bg-red-100 text-red-700"
+                                                                ? "bg-amber-100 text-amber-800 border border-amber-300"
+                                                                : st.titleHonor === "Á KHOA"
+                                                                    ? "bg-slate-200 text-slate-800"
+                                                                    : st.titleHonor === "QUÝ KHOA"
+                                                                        ? "bg-orange-100 text-orange-800"
+                                                                        : "bg-red-100 text-red-700"
                                                                 }`}
                                                         >
                                                             {st.titleHonor}
@@ -761,11 +789,11 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                             </div>
                                         </div>
 
-                                        {/* Khối Làm Uke và Điểm thi nằm ngay phía dưới thông tin cá nhân */}
+                                        {/* Khối Làm Uke và Điểm thi */}
                                         <div className="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-700/60">
                                             <div className="space-y-1 text-center shrink-0">
                                                 <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 block">
-                                                    Số lần làm Uke:
+                                                    Số lần làm Uke:
                                                 </span>
                                                 <div className="flex items-center space-x-1">
                                                     <input
@@ -843,7 +871,7 @@ export default function ExamGradingModal({ exam, isSuperAdmin }: Props) {
                                         </div>
                                     </div>
 
-                                    {/* CỘT 3: KHUNG GHI CHÚ LỚN RỘNG RÃI BÊN PHẢI */}
+                                    {/* CỘT 3: KHUNG GHI CHÚ */}
                                     <div className="flex-1 w-full xl:w-72 min-w-0 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-700 pt-3 xl:pt-0 xl:pl-4">
                                         <div className="space-y-1.5 w-full">
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
