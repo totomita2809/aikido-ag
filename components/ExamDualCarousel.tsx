@@ -1,87 +1,421 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import Image from "next/image";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, PlusCircle, Image as ImageIcon, CheckCircle, Clock, Archive, Calendar as CalendarIcon, Trash2, AlertTriangle, Edit3 } from "lucide-react";
+import {
+    createCarouselEvent,
+    getCurrentUserRole,
+    CarouselImageItem,
+    updateCarouselEventInfo,
+    deleteCarouselEvent
+} from "@/app/actions/carousel";
+import { compressMultipleImages } from "@/lib/image-compressor";
+
+export interface CarouselEventData {
+    id?: string;
+    eventKey?: string;
+    title: string;
+    eventDate: string;
+    description?: string;
+    horizontalImages: string[];
+    verticalImages: string[];
+    createdAt?: string;
+}
 
 export default function ExamDualCarousel() {
-    const [examDate, setExamDate] = useState<string>("");
-    const [horizontalImages, setHorizontalImages] = useState<string[]>([]);
-    const [verticalImages, setVerticalImages] = useState<string[]>([]);
+    const [events, setEvents] = useState<CarouselEventData[]>([]);
+    const [selectedEventIndex, setSelectedEventIndex] = useState<number>(0);
+    const [archiveModalOpen, setArchiveModalOpen] = useState(false);
 
     const [hIndex, setHIndex] = useState(0);
     const [vIndex1, setVIndex1] = useState(0);
     const [vIndex2, setVIndex2] = useState(1);
 
-    // Trạng thái cho tính năng phóng to ảnh (Lightbox)
     const [activeLightboxImage, setActiveLightboxImage] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
+    // Modal tạo sự kiện / sửa sự kiện / xác nhận
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+    const [pendingActionType, setPendingActionType] = useState<"CREATE" | "UPDATE" | "DELETE">("CREATE");
+    const [isPending, startTransition] = useTransition();
+
+    // Form data
+    const getTodayVNDateStr = () => {
+        const d = new Date();
+        const dd = String(d.getDate()).padStart(2, "0");
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+    };
+
+    const [formTitle, setFormTitle] = useState("");
+    const [formDate, setFormDate] = useState(getTodayVNDateStr());
+    const [formDescription, setFormDescription] = useState("");
+    const [selectedImages, setSelectedImages] = useState<CarouselImageItem[]>([]);
+    const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
+
+    // Ref cho ô input type="date" ẩn
+    const datePickerRef = useRef<HTMLInputElement>(null);
+    const editDatePickerRef = useRef<HTMLInputElement>(null);
+
+    // Tự động kiểm tra quyền hạn HLV / HLV Trưởng
     useEffect(() => {
-        fetch("/api/exam-photos")
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.latestDate) setExamDate(data.latestDate);
-                if (data.horizontal) setHorizontalImages(data.horizontal);
-                if (data.vertical) setVerticalImages(data.vertical);
+        getCurrentUserRole()
+            .then((role: string | null) => {
+                if (role) setUserRole(role);
             })
-            .catch(() => {
-                // Fallback dữ liệu mẫu nếu chưa có ảnh
-                setExamDate("06-09-2026");
-                setHorizontalImages(["/banner/banner-1.jpg"]);
-                setVerticalImages(["/banner/banner-2.jpg", "/banner/banner-3.jpg"]);
-            });
+            .catch(() => { });
     }, []);
 
-    // Tự động chạy slider ảnh ngang (mỗi 5 giây)
+    // Tải danh sách ảnh sự kiện
+    const fetchEvents = () => {
+        fetch("/api/exam-photos")
+            .then((res) => res.json())
+            .then((data: {
+                events?: CarouselEventData[];
+                latestDate?: string;
+                horizontal?: string[];
+                vertical?: string[];
+            }) => {
+                if (data.events && data.events.length > 0) {
+                    setEvents(data.events);
+                } else {
+                    setEvents([
+                        {
+                            id: "default-1",
+                            eventKey: "default-key",
+                            title: "KHOẢNH KHẮC KỲ THI THĂNG CẤP ĐAI",
+                            eventDate: data.latestDate || "06-09-2026",
+                            description: "Những hình ảnh nổi bật ghi nhận sự nỗ lực và tinh thần võ đạo của các môn sinh.",
+                            horizontalImages: data.horizontal && data.horizontal.length > 0 ? data.horizontal : ["/banner/banner-1.jpg"],
+                            verticalImages: data.vertical && data.vertical.length > 0 ? data.vertical : ["/banner/banner-2.jpg", "/banner/banner-3.jpg"],
+                        },
+                    ]);
+                }
+            })
+            .catch(() => {
+                setEvents([
+                    {
+                        id: "fallback-1",
+                        eventKey: "fallback-key",
+                        title: "KHOẢNH KHẮC KỲ THI THĂNG CẤP ĐAI",
+                        eventDate: "06-09-2026",
+                        description: "Những hình ảnh nổi bật ghi nhận sự nỗ lực và tinh thần võ đạo của các môn sinh.",
+                        horizontalImages: ["/banner/banner-1.jpg"],
+                        verticalImages: ["/banner/banner-2.jpg", "/banner/banner-3.jpg"],
+                    },
+                ]);
+            });
+    };
+
     useEffect(() => {
-        if (horizontalImages.length <= 1) return;
-        const timer = setInterval(() => {
-            setHIndex((prev) => (prev + 1) % horizontalImages.length);
-        }, 5000);
-        return () => clearInterval(timer);
-    }, [horizontalImages.length]);
+        fetchEvents();
+    }, []);
 
-    // Tự động chạy slider ảnh dọc (hiển thị song song 2 ảnh với hiệu ứng chuyển ảnh mượt mà, mỗi 4.5 giây)
-    useEffect(() => {
-        if (verticalImages.length <= 1) return;
-        const timer = setInterval(() => {
-            setVIndex1((prev) => (prev + 1) % verticalImages.length);
-            setVIndex2((prev) => (prev + 2) % verticalImages.length);
-        }, 4500);
-        return () => clearInterval(timer);
-    }, [verticalImages.length]);
+    const isSuperAdmin = userRole === "SUPER_ADMIN";
+    const isCoach = userRole === "COACH";
+    const canManage = isSuperAdmin || isCoach;
 
-    if (!examDate && horizontalImages.length === 0 && verticalImages.length === 0) {
-        return null; // Không hiển thị nếu chưa có thư mục ảnh kỳ thi nào
-    }
+    const currentEvent = events[selectedEventIndex] || events[0];
+    const recentEvents = events.slice(0, 3);
+    const olderEvents = events.slice(3);
 
-    const activeHList = horizontalImages.length > 0 ? horizontalImages : ["/banner/banner-1.jpg"];
-    const activeVList = verticalImages.length > 0 ? verticalImages : ["/banner/banner-2.jpg"];
+    const activeHList = currentEvent?.horizontalImages?.length > 0 ? currentEvent.horizontalImages : ["/banner/banner-1.jpg"];
+    const activeVList = currentEvent?.verticalImages?.length > 0 ? currentEvent.verticalImages : ["/banner/banner-2.jpg"];
+
     const currentHImage = activeHList[hIndex % activeHList.length];
     const currentVImage1 = activeVList[vIndex1 % activeVList.length];
     const currentVImage2 = activeVList[vIndex2 % activeVList.length];
 
+    useEffect(() => {
+        if (activeHList.length <= 1) return;
+        const timer = setInterval(() => {
+            setHIndex((prev) => (prev + 1) % activeHList.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [activeHList.length]);
+
+    useEffect(() => {
+        if (activeVList.length <= 1) return;
+        const timer = setInterval(() => {
+            setVIndex1((prev) => (prev + 1) % activeVList.length);
+            setVIndex2((prev) => (prev + 2) % activeVList.length);
+        }, 4500);
+        return () => clearInterval(timer);
+    }, [activeVList.length]);
+
+    // Xử lý nhập ngày: chỉ cho gõ số, tự chèn "/"
+    const handleDateTextChange = (val: string) => {
+        const cleaned = val.replace(/\D/g, "").slice(0, 8);
+        let formatted = cleaned;
+        if (cleaned.length >= 3 && cleaned.length <= 4) {
+            formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+        } else if (cleaned.length > 4) {
+            formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4)}`;
+        }
+        setFormDate(formatted);
+    };
+
+    // Khi chọn ngày từ popup lịch native
+    const handleNativeDateSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateVal = e.target.value;
+        if (!dateVal) return;
+        const [y, m, d] = dateVal.split("-");
+        if (y && m && d) {
+            setFormDate(`${d}/${m}/${y}`);
+        }
+    };
+
+    // Xử lý chọn nhiều ảnh: nén song song dung lượng thấp giữ nguyên chất lượng
+    const handleMultipleImagesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        try {
+            const compressedList = await compressMultipleImages(files, {
+                maxDimension: 2048,
+                quality: 0.85,
+                mimeType: "image/webp",
+            });
+
+            const formattedImages: CarouselImageItem[] = compressedList.map((item) => ({
+                url: item.base64,
+                aspectRatio: item.aspectRatio,
+                fileName: item.fileName,
+            }));
+
+            setSelectedImages((prev) => [...prev, ...formattedImages]);
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : "Đã xảy ra lỗi khi nén hình ảnh");
+        } finally {
+            e.target.value = "";
+        }
+    };
+
+    const handleRemoveImage = (indexToRemove: number) => {
+        setSelectedImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    };
+
+    // Mở modal sửa sự kiện hiện tại
+    const handleOpenEditModal = () => {
+        if (!currentEvent) return;
+        setFormTitle(currentEvent.title);
+        setFormDate(currentEvent.eventDate.replace(/-/g, "/"));
+        setFormDescription(currentEvent.description || "");
+        setIsEditModalOpen(true);
+    };
+
+    // Thực thi Server Action
+    const executeAction = () => {
+        setConfirmModalOpen(false);
+        startTransition(async () => {
+            try {
+                if (pendingActionType === "CREATE") {
+                    const res = await createCarouselEvent({
+                        title: formTitle.trim(),
+                        eventDate: formDate.trim(),
+                        description: formDescription.trim() || undefined,
+                        images: selectedImages,
+                    });
+
+                    setSubmitResult({ success: true, message: res.message });
+                    fetchEvents();
+
+                    setTimeout(() => {
+                        setIsCreateModalOpen(false);
+                        setSubmitResult(null);
+                        setFormTitle("");
+                        setFormDate(getTodayVNDateStr());
+                        setFormDescription("");
+                        setSelectedImages([]);
+                    }, 1600);
+                } else if (pendingActionType === "UPDATE") {
+                    const targetKey = currentEvent?.eventKey || currentEvent?.id || "";
+                    const res = await updateCarouselEventInfo(
+                        targetKey,
+                        formTitle.trim(),
+                        formDate.trim(),
+                        formDescription.trim() || undefined
+                    );
+                    alert(res.message);
+                    setIsEditModalOpen(false);
+                    fetchEvents();
+                } else if (pendingActionType === "DELETE") {
+                    const targetKey = currentEvent?.eventKey || currentEvent?.id || "";
+                    const res = await deleteCarouselEvent(targetKey);
+                    alert(res.message);
+                    setSelectedEventIndex(0);
+                    fetchEvents();
+                }
+            } catch (err: unknown) {
+                alert(err instanceof Error ? err.message : "Đã xảy ra lỗi khi xử lý sự kiện");
+            }
+        });
+    };
+
+    // Xử lý nộp form tạo mới
+    const handleCreateSubmit = () => {
+        if (!formTitle.trim()) {
+            alert("Vui lòng nhập tiêu đề sự kiện!");
+            return;
+        }
+        if (!formDate.trim() || formDate.length < 10) {
+            alert("Vui lòng nhập đúng định dạng ngày dd/MM/yyyy!");
+            return;
+        }
+        if (selectedImages.length === 0) {
+            alert("Vui lòng chọn ít nhất một hình ảnh từ thiết bị!");
+            return;
+        }
+
+        setPendingActionType("CREATE");
+        if (isSuperAdmin) {
+            setConfirmModalOpen(true);
+            return;
+        }
+        executeAction();
+    };
+
+    // Xử lý nộp form cập nhật
+    const handleUpdateSubmit = () => {
+        if (!formTitle.trim() || !formDate.trim() || formDate.length < 10) {
+            alert("Vui lòng nhập đúng tiêu đề và định dạng ngày dd/MM/yyyy!");
+            return;
+        }
+
+        setPendingActionType("UPDATE");
+        if (isSuperAdmin) {
+            setConfirmModalOpen(true);
+            return;
+        }
+        executeAction();
+    };
+
+    // Xử lý nút xóa sự kiện
+    const handleDeleteClick = () => {
+        setPendingActionType("DELETE");
+        if (isSuperAdmin) {
+            setConfirmModalOpen(true);
+            return;
+        }
+        if (confirm("Gửi yêu cầu xóa sự kiện này tới HLV Trưởng phê duyệt?")) {
+            executeAction();
+        }
+    };
+
+    const groupedOlderEvents = olderEvents.reduce<Record<string, CarouselEventData[]>>((acc, evt) => {
+        const parts = evt.eventDate.split(/[-/]/);
+        const year = parts.length === 3 ? parts[2] : "Khác";
+        if (!acc[year]) acc[year] = [];
+        acc[year].push(evt);
+        return acc;
+    }, {});
+
+    if (!currentEvent) return null;
+
     return (
-        <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
-            {/* Tiêu đề gọn gàng đúng yêu cầu */}
-            <div className="flex items-center space-x-3 pb-4 border-b border-slate-100 dark:border-slate-800">
-                <div className="p-2.5 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded-xl">
-                    <Sparkles className="w-6 h-6" />
+        <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6 shadow-xs">
+            {/* Header: Tiêu đề, Ngày, Mô tả và Cụm Nút Thao tác */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-start space-x-3">
+                    <div className="p-2.5 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded-xl shrink-0 mt-0.5">
+                        <Sparkles className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                            {currentEvent.title} ({currentEvent.eventDate})
+                        </h2>
+                        {currentEvent.description && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                {currentEvent.description}
+                            </p>
+                        )}
+
+                        {recentEvents.length > 1 && (
+                            <div className="flex items-center space-x-2 mt-2">
+                                <span className="text-[11px] font-semibold text-slate-400">Gần đây:</span>
+                                {recentEvents.map((evt, idx) => (
+                                    <button
+                                        key={evt.id || idx}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedEventIndex(idx);
+                                            setHIndex(0);
+                                            setVIndex1(0);
+                                            setVIndex2(1);
+                                        }}
+                                        className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium transition-all cursor-pointer ${selectedEventIndex === idx
+                                            ? "bg-red-600 text-white font-bold"
+                                            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                                            }`}
+                                    >
+                                        {evt.eventDate}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                        Khoảnh khắc kỳ thi thăng cấp đai ({examDate})
-                    </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Những hình ảnh nổi bật ghi nhận sự nỗ lực và tinh thần võ đạo của các môn sinh.
-                    </p>
+
+                <div className="flex items-center space-x-2 shrink-0">
+                    {olderEvents.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setArchiveModalOpen(true)}
+                            className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                        >
+                            <Archive className="w-4 h-4 text-slate-500" />
+                            <span>Lưu trữ ({olderEvents.length})</span>
+                        </button>
+                    )}
+
+                    {canManage && (
+                        <>
+                            {/* Nút Sửa sự kiện đang hiển thị */}
+                            <button
+                                type="button"
+                                onClick={handleOpenEditModal}
+                                className="inline-flex items-center space-x-1 px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                                title="Chỉnh sửa tiêu đề và ngày"
+                            >
+                                <Edit3 className="w-4 h-4" />
+                                <span className="hidden sm:inline">Sửa</span>
+                            </button>
+
+                            {/* Nút Xóa sự kiện đang hiển thị */}
+                            <button
+                                type="button"
+                                onClick={handleDeleteClick}
+                                className="inline-flex items-center space-x-1 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                                title="Xóa sự kiện và dọn sạch Cloud R2"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span className="hidden sm:inline">Xóa</span>
+                            </button>
+
+                            {/* Nút Thêm sự kiện */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setFormDate(getTodayVNDateStr());
+                                    setIsCreateModalOpen(true);
+                                }}
+                                className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                            >
+                                <PlusCircle className="w-4 h-4" />
+                                <span>Thêm sự kiện</span>
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
-            {/* 2 Thẻ lớn song song cân đối */}
+            {/* Khung ảnh Carousel */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-
-                {/* THẺ 1: ẢNH NGANG (Khung nhỏ bên trong tự co dãn, ôm sát và bo góc mượt mà theo kích thước ảnh) */}
+                {/* Khung 1: Ảnh ngang */}
                 <div className="relative w-full h-[320px] sm:h-[380px] rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-inner flex items-center justify-center p-4">
                     {activeHList.length > 0 ? (
                         <div
@@ -94,7 +428,7 @@ export default function ExamDualCarousel() {
                             {activeHList.map((src, idx) => (
                                 <div
                                     key={src}
-                                    className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-center ${idx === (hIndex % activeHList.length) ? "opacity-100 z-10" : "opacity-0 z-0"
+                                    className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-center ${idx === hIndex % activeHList.length ? "opacity-100 z-10" : "opacity-0 z-0"
                                         }`}
                                 >
                                     <div className="relative w-full h-full rounded-2xl overflow-hidden">
@@ -111,11 +445,10 @@ export default function ExamDualCarousel() {
                     )}
                 </div>
 
-                {/* THẺ 2: ẢNH DỌC (2 khung nhỏ bên trong ôm sát và bo góc theo ảnh) */}
+                {/* Khung 2: 2 Khung ảnh dọc */}
                 <div className="relative w-full h-[320px] sm:h-[380px] rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-inner grid grid-cols-2 gap-4 p-4 items-center justify-items-center">
                     {activeVList.length > 0 ? (
                         <>
-                            {/* Cột dọc 1 */}
                             <div
                                 onClick={() => {
                                     if (currentVImage1) setActiveLightboxImage(currentVImage1);
@@ -126,7 +459,7 @@ export default function ExamDualCarousel() {
                                 {activeVList.map((src, idx) => (
                                     <div
                                         key={src}
-                                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-center ${idx === (vIndex1 % activeVList.length) ? "opacity-100 z-10" : "opacity-0 z-0"
+                                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-center ${idx === vIndex1 % activeVList.length ? "opacity-100 z-10" : "opacity-0 z-0"
                                             }`}
                                     >
                                         <div className="relative w-full h-full rounded-lg overflow-hidden">
@@ -137,7 +470,6 @@ export default function ExamDualCarousel() {
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none rounded-xl z-20" />
                             </div>
 
-                            {/* Cột dọc 2 */}
                             <div
                                 onClick={() => {
                                     if (currentVImage2) setActiveLightboxImage(currentVImage2);
@@ -148,7 +480,7 @@ export default function ExamDualCarousel() {
                                 {activeVList.map((src, idx) => (
                                     <div
                                         key={src}
-                                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-center ${idx === (vIndex2 % activeVList.length) ? "opacity-100 z-10" : "opacity-0 z-0"
+                                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-center ${idx === vIndex2 % activeVList.length ? "opacity-100 z-10" : "opacity-0 z-0"
                                             }`}
                                     >
                                         <div className="relative w-full h-full rounded-lg overflow-hidden">
@@ -167,7 +499,7 @@ export default function ExamDualCarousel() {
                 </div>
             </div>
 
-            {/* LIGHTBOX MODAL (Phóng to ảnh toàn màn hình khi click) */}
+            {/* Lightbox Xem phóng to */}
             {activeLightboxImage && (
                 <div
                     onClick={() => setActiveLightboxImage(null)}
@@ -190,6 +522,418 @@ export default function ExamDualCarousel() {
                             className="object-contain rounded-xl"
                             sizes="100vw"
                         />
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL SỬA SỰ KIỆN */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Edit3 className="w-4 h-4 text-amber-500" />
+                                    <span>Chỉnh Sửa Sự Kiện</span>
+                                </h3>
+                                <span className="text-xs text-slate-400">
+                                    {isSuperAdmin
+                                        ? "Đồng bộ tên thư mục R2 và tiêu đề trên web"
+                                        : "Gửi yêu cầu chỉnh sửa tới HLV Trưởng"}
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-3.5 text-xs">
+                            <div className="space-y-1">
+                                <label className="font-bold text-slate-700 dark:text-slate-300">
+                                    Tiêu đề sự kiện (*):
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formTitle}
+                                    onChange={(e) => setFormTitle(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-hidden"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="font-bold text-slate-700 dark:text-slate-300">
+                                    Ngày diễn ra (dd/MM/yyyy) (*):
+                                </label>
+                                <div className="relative flex items-center">
+                                    <input
+                                        type="text"
+                                        value={formDate}
+                                        onChange={(e) => handleDateTextChange(e.target.value)}
+                                        className="w-full px-3 py-2 pr-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-amber-500 outline-hidden"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (editDatePickerRef.current) {
+                                                try { editDatePickerRef.current.showPicker(); } catch { editDatePickerRef.current.focus(); }
+                                            }
+                                        }}
+                                        className="absolute right-2.5 p-1 text-slate-400 hover:text-amber-500 transition-colors cursor-pointer"
+                                    >
+                                        <CalendarIcon className="w-4 h-4" />
+                                    </button>
+                                    <input
+                                        ref={editDatePickerRef}
+                                        type="date"
+                                        onChange={handleNativeDateSelect}
+                                        className="sr-only"
+                                        tabIndex={-1}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="font-bold text-slate-700 dark:text-slate-300">
+                                    Mô tả ngắn:
+                                </label>
+                                <textarea
+                                    value={formDescription}
+                                    onChange={(e) => setFormDescription(e.target.value)}
+                                    rows={2}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-hidden resize-none"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                    className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                                >
+                                    Hủy
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={isPending}
+                                    onClick={handleUpdateSubmit}
+                                    className="px-4 py-1.5 font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                                >
+                                    {isPending ? "Đang xử lý..." : isSuperAdmin ? "Lưu thay đổi" : "Gửi yêu cầu sửa"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL THÊM SỰ KIỆN */}
+            {isCreateModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                                    Thêm Sự Kiện & Tải Hình Ảnh
+                                </h3>
+                                <span className="text-xs text-slate-400">
+                                    {isSuperAdmin
+                                        ? "Đăng trực tiếp hiển thị lên website"
+                                        : "Tạo nội dung và gửi HLV Trưởng phê duyệt"}
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsCreateModalOpen(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {submitResult ? (
+                            <div className="p-6 text-center space-y-3">
+                                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center mx-auto">
+                                    {isSuperAdmin ? <CheckCircle className="w-7 h-7" /> : <Clock className="w-7 h-7" />}
+                                </div>
+                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                    {submitResult.message}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3.5 text-xs">
+                                <div className="space-y-1">
+                                    <label className="font-bold text-slate-700 dark:text-slate-300">
+                                        Tiêu đề sự kiện (*):
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formTitle}
+                                        onChange={(e) => setFormTitle(e.target.value)}
+                                        placeholder="Ví dụ: KHOẢNH KHẮC KỲ THI THĂNG CẤP ĐAI"
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-hidden"
+                                    />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="font-bold text-slate-700 dark:text-slate-300">
+                                        Ngày diễn ra (dd/MM/yyyy) (*):
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <input
+                                            type="text"
+                                            value={formDate}
+                                            onFocus={() => setFormDate("")}
+                                            onBlur={() => {
+                                                if (!formDate.trim() || formDate.trim().length < 10) {
+                                                    setFormDate(getTodayVNDateStr());
+                                                }
+                                            }}
+                                            onChange={(e) => handleDateTextChange(e.target.value)}
+                                            placeholder="dd/MM/yyyy"
+                                            className="w-full px-3 py-2 pr-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-red-500 outline-hidden"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (datePickerRef.current) {
+                                                    try {
+                                                        datePickerRef.current.showPicker();
+                                                    } catch {
+                                                        datePickerRef.current.focus();
+                                                    }
+                                                }
+                                            }}
+                                            className="absolute right-2.5 p-1 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
+                                            title="Bấm để chọn lịch"
+                                        >
+                                            <CalendarIcon className="w-4 h-4" />
+                                        </button>
+                                        <input
+                                            ref={datePickerRef}
+                                            type="date"
+                                            onChange={handleNativeDateSelect}
+                                            className="sr-only"
+                                            tabIndex={-1}
+                                        />
+                                    </div>
+                                    <span className="text-[10px] text-slate-400">
+                                        * Nhấp vào ô để gõ số (hệ thống tự thêm dấu /) hoặc nhấp icon lịch để chọn ngày
+                                    </span>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="font-bold text-slate-700 dark:text-slate-300">
+                                        Mô tả ngắn (nếu có):
+                                    </label>
+                                    <textarea
+                                        value={formDescription}
+                                        onChange={(e) => setFormDescription(e.target.value)}
+                                        rows={2}
+                                        placeholder="Ghi chú thêm về sự kiện hoặc lời chúc môn sinh..."
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-hidden resize-none"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="font-bold text-slate-700 dark:text-slate-300">
+                                            Hình ảnh (*):
+                                        </label>
+                                        <span className="text-[11px] text-slate-400 font-mono">
+                                            Đã chọn: {selectedImages.length} ảnh
+                                        </span>
+                                    </div>
+
+                                    <label className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg font-semibold text-slate-700 dark:text-slate-200 cursor-pointer shadow-2xs transition-colors">
+                                        <ImageIcon className="w-4 h-4 text-slate-500" />
+                                        <span>Chọn nhiều ảnh từ thiết bị</span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            onChange={handleMultipleImagesSelect}
+                                            className="hidden"
+                                        />
+                                    </label>
+
+                                    {selectedImages.length > 0 && (
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2 max-h-48 overflow-y-auto p-1 border border-slate-100 dark:border-slate-800 rounded-xl">
+                                            {selectedImages.map((img, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 aspect-square"
+                                                >
+                                                    <Image
+                                                        src={img.url}
+                                                        alt={`Preview ${idx + 1}`}
+                                                        fill
+                                                        className="object-cover"
+                                                    />
+                                                    <span
+                                                        className={`absolute bottom-1 left-1 px-1 py-0.2 text-[9px] font-bold rounded ${img.aspectRatio === "LANDSCAPE"
+                                                            ? "bg-blue-600 text-white"
+                                                            : "bg-purple-600 text-white"
+                                                            }`}
+                                                    >
+                                                        {img.aspectRatio === "LANDSCAPE" ? "Ngang" : "Dọc"}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveImage(idx)}
+                                                        className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-red-600 text-white rounded-full opacity-80 group-hover:opacity-100 transition-all cursor-pointer"
+                                                        title="Xóa ảnh này"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCreateModalOpen(false)}
+                                        className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={isPending}
+                                        onClick={handleCreateSubmit}
+                                        className="px-4 py-1.5 font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                                    >
+                                        {isPending
+                                            ? "Đang lưu..."
+                                            : isSuperAdmin
+                                                ? "Đăng lên Web"
+                                                : "Gửi HLV Trưởng duyệt"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL XÁC NHẬN VÀ XEM LẠI CHI TIẾT DÀNH CHO HLV TRƯỞNG (SUPER_ADMIN) */}
+            {confirmModalOpen && (
+                <div className="fixed inset-0 z-60 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-red-500/30">
+                        <div className="flex items-center gap-2.5 text-red-600 dark:text-red-400">
+                            <AlertTriangle className="w-5 h-5 shrink-0" />
+                            <h4 className="text-sm font-bold uppercase tracking-wide">
+                                Xác nhận thao tác HLV Trưởng
+                            </h4>
+                        </div>
+
+                        <div className="text-xs text-slate-600 dark:text-slate-300 space-y-2 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                            {pendingActionType === "DELETE" ? (
+                                <p>Bạn đang chuẩn bị <strong className="text-red-600">XÓA VĨNH VIỄN</strong> sự kiện: <strong>{currentEvent.title}</strong> cùng toàn bộ thư mục trên Cloudflare R2.</p>
+                            ) : pendingActionType === "UPDATE" ? (
+                                <>
+                                    <p><strong>Tiêu đề mới:</strong> {formTitle.trim().toUpperCase()}</p>
+                                    <p><strong>Ngày mới:</strong> {formDate}</p>
+                                    <p className="text-amber-500">* Hệ thống sẽ tự đổi tên thư mục tương ứng trên Cloudflare R2.</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p><strong>Tiêu đề:</strong> {formTitle.trim().toUpperCase()}</p>
+                                    <p><strong>Ngày diễn ra:</strong> {formDate}</p>
+                                    <p><strong>Số lượng ảnh tải lên:</strong> {selectedImages.length} ảnh</p>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl p-3 text-[11px] text-red-700 dark:text-red-300">
+                            ⚠️ <strong>Lưu ý HLV Trưởng:</strong> Thao tác này sẽ tác động trực tiếp vào cơ sở dữ liệu và Cloudflare R2, <strong>không thể hoàn tác</strong>!
+                        </div>
+
+                        <div className="flex items-center justify-end space-x-2 pt-2">
+                            <button
+                                type="button"
+                                disabled={isPending}
+                                onClick={() => setConfirmModalOpen(false)}
+                                className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg text-xs transition-colors cursor-pointer"
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isPending}
+                                onClick={executeAction}
+                                className={`px-4 py-1.5 font-bold rounded-lg text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-50 ${pendingActionType === "DELETE"
+                                        ? "bg-red-600 hover:bg-red-700 text-white"
+                                        : "bg-amber-600 hover:bg-amber-700 text-white"
+                                    }`}
+                            >
+                                {isPending ? "Đang xử lý..." : "Tôi hiểu, Xác nhận thực hiện"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal lưu trữ sự kiện cũ */}
+            {archiveModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 max-h-[80vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Archive className="w-5 h-5 text-red-600" />
+                                <span>Lưu Trữ Sự Kiện Theo Năm</span>
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setArchiveModalOpen(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {Object.keys(groupedOlderEvents).map((year) => (
+                                <div key={year} className="space-y-2">
+                                    <h4 className="text-xs font-bold font-mono text-red-600 uppercase border-b border-red-100 dark:border-red-950 pb-1">
+                                        Năm {year}
+                                    </h4>
+                                    <div className="space-y-1.5">
+                                        {groupedOlderEvents[year].map((evt) => (
+                                            <div
+                                                key={evt.id || evt.eventDate}
+                                                onClick={() => {
+                                                    const idx = events.findIndex((e) => e.id === evt.id);
+                                                    if (idx !== -1) setSelectedEventIndex(idx);
+                                                    setArchiveModalOpen(false);
+                                                }}
+                                                className="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors flex items-center justify-between"
+                                            >
+                                                <div>
+                                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                                                        {evt.title}
+                                                    </p>
+                                                    {evt.description && (
+                                                        <p className="text-[11px] text-slate-500 line-clamp-1">
+                                                            {evt.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <span className="text-[11px] font-mono text-slate-400 font-medium shrink-0 ml-2">
+                                                    {evt.eventDate}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}

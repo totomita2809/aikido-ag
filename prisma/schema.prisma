@@ -245,3 +245,25 @@ model ExamCandidate {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @default(now()) @updatedAt
 }
+
+
+
+//Mô hình bảng CarouselEvent lưu trữ thông tin sự kiện và hình ảnh
+model CarouselEvent {
+  id          String   @id @default(cuid())
+  eventKey    String?  // Mã định danh thư mục trên Cloudflare R2
+  title       String
+  eventDate   DateTime
+  description String?
+  imageUrl    String   @db.Text
+  aspectRatio String   @default("LANDSCAPE")
+  status      String   @default("APPROVED") // APPROVED, PENDING_APPROVAL, PENDING_UPDATE, PENDING_DELETE
+  creatorId   String
+  creatorName String
+  creatorRole String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([eventKey])
+  @@index([status])
+}

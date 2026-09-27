@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Clock, CreditCard, MapPin, ExternalLink } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, CreditCard, MapPin, ExternalLink, Settings } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 import ExportButton from "@/components/ExportButton";
 import FeeTableRows from "@/components/FeeTableRows";
 import { DOJO_CONFIGS } from "@/lib/constants";
+import AutoFilterSelect from "@/components/FeeAutoFilterSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -12,13 +14,15 @@ export default async function FeesPage({
 }: {
     searchParams: Promise<{ month?: string; year?: string; dojo?: string }>;
 }) {
+    const session = await getSession();
+    const isSuperAdmin = session?.role === "SUPER_ADMIN";
+
     const params = await searchParams;
     const now = new Date();
     const currentMonth = params.month ? Number(params.month) : now.getMonth() + 1;
     const currentYear = params.year ? Number(params.year) : now.getFullYear();
     const selectedDojo = params.dojo || "ALL"; // "ALL" | "HAYATE" | "TACHI"
 
-    // Tính quý tương ứng nếu xem sân Tachi
     const currentQuarter = Math.ceil(currentMonth / 3);
 
     const whereCondition: Record<string, unknown> = { status: "ACTIVE" };
@@ -80,12 +84,11 @@ export default async function FeesPage({
     ).length;
     const unpaidCount = totalActive - paidCount;
 
-    // Tính tổng tiền dựa theo từng sân của môn sinh đã nộp
     const totalCollected = students.reduce((sum, s) => {
         const isPaid = s.tuitionFees && s.tuitionFees.length > 0 && s.tuitionFees[0].isPaid;
         if (isPaid) {
-            const config = getStudentFeeConfig(s.dojo);
-            return sum + config.amount;
+            const actualAmount = s.tuitionFees?.[0]?.amount || getStudentFeeConfig(s.dojo).amount;
+            return sum + actualAmount;
         }
         return sum;
     }, 0);
@@ -101,6 +104,7 @@ export default async function FeesPage({
             feeConfig: getStudentFeeConfig(student.dojo),
             isPaid: !!(fee && fee.isPaid),
             paidAt: fee?.paidAt || null,
+            amount: fee?.amount || getStudentFeeConfig(student.dojo).amount,
             paymentMethod: fee?.paymentMethod || "Tiền mặt",
             receiptUrl: fee?.receiptUrl || null,
             month: currentMonth,
@@ -124,110 +128,99 @@ export default async function FeesPage({
                         Quản Lý Học Phí
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        Theo dõi tình trạng thu nộp theo cơ sở tập luyện
+                        Theo dõi và cập nhật trạng thái thu nộp học phí theo cơ sở tập luyện
                     </p>
                 </div>
 
-                {/* Bộ lọc Sân tập, Thời gian & Nút Xuất Excel */}
+                {/* Bộ lọc tự động & Nút Xuất File */}
                 <div className="flex flex-wrap items-center gap-2">
                     <ExportButton type="FEES" dojo={selectedDojo} year={currentYear} />
-                    <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <form method="GET" className="flex flex-wrap items-center gap-2">
-                            <select
-                                name="dojo"
-                                defaultValue={selectedDojo}
-                                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
-                            >
-                                <option value="ALL" className="dark:bg-slate-900">Tất cả sân</option>
-                                <option value={DOJO_CONFIGS.HAYATE.key} className="dark:bg-slate-900">{DOJO_CONFIGS.HAYATE.name} ({(DOJO_CONFIGS.HAYATE.feeAmount / 1000)}k/tháng)</option>
-                                <option value={DOJO_CONFIGS.TACHI.key} className="dark:bg-slate-900">{DOJO_CONFIGS.TACHI.name} ({(DOJO_CONFIGS.TACHI.feeAmount / 1000)}k/quý)</option>
-                            </select>
-
-                            <select
-                                name="month"
-                                defaultValue={currentMonth}
-                                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
-                            >
-                                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                                    <option key={m} value={m} className="dark:bg-slate-900">
-                                        Tháng {m}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <select
-                                name="year"
-                                defaultValue={currentYear}
-                                className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:outline-none"
-                            >
-                                {[2025, 2026, 2027].map((y) => (
-                                    <option key={y} value={y} className="dark:bg-slate-900">
-                                        Năm {y}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <button
-                                type="submit"
-                                className="px-3 py-1.5 text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 rounded-lg transition-colors"
-                            >
-                                Lọc
-                            </button>
-                        </form>
-                    </div>
+                    <AutoFilterSelect
+                        selectedDojo={selectedDojo}
+                        currentMonth={currentMonth}
+                        currentYear={currentYear}
+                    />
                 </div>
             </div>
 
-            {/* Thông tin 2 sân tập */}
+            {/* Thông tin 2 sân tập & Mức học phí quy định */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
-                    <div>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 mb-1">
-                            Sân 1
-                        </span>
-                        <h3 className="font-semibold text-slate-900 dark:text-white">{DOJO_CONFIGS.HAYATE.name}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Học phí: <strong className="text-slate-800 dark:text-slate-200">{DOJO_CONFIGS.HAYATE.feeAmount.toLocaleString("vi-VN")} đ / tháng</strong>
-                        </p>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 mb-1">
+                                Sân 1
+                            </span>
+                            <h3 className="font-bold text-slate-900 dark:text-white">{DOJO_CONFIGS.HAYATE.name}</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Học phí quy định: <strong className="text-slate-800 dark:text-slate-200">{DOJO_CONFIGS.HAYATE.feeAmount.toLocaleString("vi-VN")} đ / tháng</strong>
+                            </p>
+                        </div>
+                        <a
+                            href={DOJO_CONFIGS.HAYATE.mapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg"
+                        >
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>Bản đồ</span>
+                            <ExternalLink className="w-3 h-3" />
+                        </a>
                     </div>
-                    <a
-                        href={DOJO_CONFIGS.HAYATE.mapUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg"
-                    >
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>Xem bản đồ</span>
-                        <ExternalLink className="w-3 h-3" />
-                    </a>
+
+                    {isSuperAdmin && (
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                            <span className="inline-flex items-center gap-1.5 font-medium">
+                                <Settings className="w-3.5 h-3.5 text-slate-400" />
+                                <span>Cấu hình bởi HLV Trưởng</span>
+                            </span>
+                            <span className="font-mono text-[11px] text-slate-400">
+                                Chu kỳ: Hàng tháng
+                            </span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
-                    <div>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 mb-1">
-                            Sân 2
-                        </span>
-                        <h3 className="font-semibold text-slate-900 dark:text-white">{DOJO_CONFIGS.TACHI.name}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Học phí: <strong className="text-slate-800 dark:text-slate-200">{DOJO_CONFIGS.TACHI.feeAmount.toLocaleString("vi-VN")} đ / quý (3 tháng)</strong>
-                        </p>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 mb-1">
+                                Sân 2
+                            </span>
+                            <h3 className="font-bold text-slate-900 dark:text-white">{DOJO_CONFIGS.TACHI.name}</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Học phí quy định: <strong className="text-slate-800 dark:text-slate-200">{DOJO_CONFIGS.TACHI.feeAmount.toLocaleString("vi-VN")} đ / quý (3 tháng)</strong>
+                            </p>
+                        </div>
+                        <a
+                            href={DOJO_CONFIGS.TACHI.mapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg"
+                        >
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>Bản đồ</span>
+                            <ExternalLink className="w-3 h-3" />
+                        </a>
                     </div>
-                    <a
-                        href={DOJO_CONFIGS.TACHI.mapUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-950/40 p-2 rounded-lg"
-                    >
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>Xem bản đồ</span>
-                        <ExternalLink className="w-3 h-3" />
-                    </a>
+
+                    {isSuperAdmin && (
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                            <span className="inline-flex items-center gap-1.5 font-medium">
+                                <Settings className="w-3.5 h-3.5 text-slate-400" />
+                                <span>Cấu hình bởi HLV Trưởng</span>
+                            </span>
+                            <span className="font-mono text-[11px] text-slate-400">
+                                Chu kỳ: Theo Quý
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* Thẻ thống kê tài chính */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center space-x-4">
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center space-x-4">
                     <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-lg">
                         <CheckCircle2 className="h-6 w-6" />
                     </div>
@@ -241,7 +234,7 @@ export default async function FeesPage({
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center space-x-4">
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center space-x-4">
                     <div className="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-lg">
                         <Clock className="h-6 w-6" />
                     </div>
@@ -255,7 +248,7 @@ export default async function FeesPage({
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center space-x-4">
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center space-x-4">
                     <div className="p-3 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-lg">
                         <CreditCard className="h-6 w-6" />
                     </div>
@@ -271,7 +264,7 @@ export default async function FeesPage({
             </div>
 
             {/* Bảng danh sách trạng thái đóng học phí */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                         Danh sách môn sinh - Tháng {currentMonth}/{currentYear}
@@ -285,15 +278,14 @@ export default async function FeesPage({
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
                             <tr>
-                                <th className="px-5 py-3.5">Mã số</th>
-                                <th className="px-5 py-3.5">Họ và tên</th>
+                                <th className="px-5 py-3.5">Môn sinh</th>
                                 <th className="px-5 py-3.5">Sân tập</th>
                                 <th className="px-5 py-3.5">Mức thu</th>
                                 <th className="px-5 py-3.5">Ngày đóng</th>
                                 <th className="px-5 py-3.5 text-right">Tình trạng</th>
                             </tr>
                         </thead>
-                        <FeeTableRows students={formattedStudents} />
+                        <FeeTableRows students={formattedStudents} isSuperAdmin={isSuperAdmin} />
                     </table>
                 </div>
             </div>

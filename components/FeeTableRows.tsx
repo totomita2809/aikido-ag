@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { createPortal } from "react-dom";
-import { Pencil } from "lucide-react";
-import FeeEditModal from "@/components/FeeEditModal";
-import PaymentProofModal from "@/components/PaymentProofModal";
+import React, { useState } from "react";
+import Image from "next/image";
+import { ChevronDown, ChevronUp, Eye, X } from "lucide-react";
+import FeeRowEditPanel from "@/components/FeeRowEditPanel";
 
-interface StudentRow {
+export interface StudentRow {
     id: string;
     studentCode: string;
     fullName: string;
@@ -19,132 +18,176 @@ interface StudentRow {
     };
     isPaid: boolean;
     paidAt?: Date | null;
+    amount?: number;
     paymentMethod?: string | null;
     receiptUrl?: string | null;
     month: number;
     year: number;
 }
 
-export default function FeeTableRows({ students }: { students: StudentRow[] }) {
-    const [selectedStudent, setSelectedStudent] = useState<StudentRow | null>(null);
-    const [proofModalData, setProofModalData] = useState<{ studentId: string; fullName: string; month: number; year: number } | null>(null);
+interface FeeTableRowsProps {
+    students: StudentRow[];
+    isSuperAdmin?: boolean;
+}
 
-    // Kiểm tra client-side an toàn mà không cần useEffect gây cascading render
-    const isClient = typeof window !== "undefined";
+export default function FeeTableRows({ students, isSuperAdmin = false }: FeeTableRowsProps) {
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+    const handleToggleExpand = (id: string) => {
+        if (!isSuperAdmin) return;
+        setExpandedId((prev) => (prev === id ? null : id));
+    };
 
     return (
         <>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {students.map((student) => (
-                    <tr
-                        key={student.id}
-                        className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
-                    >
-                        <td className="px-5 py-4 font-mono font-semibold text-slate-700 dark:text-slate-300">
-                            {student.studentCode}
-                        </td>
-                        <td className="px-5 py-4 font-medium text-slate-900 dark:text-white">
-                            {student.fullName}
-                        </td>
-                        <td className="px-5 py-4">
-                            <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${student.dojo === "TACHI"
-                                        ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
-                                        : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 border border-red-200 dark:border-red-800"
-                                    }`}
+                {students.map((student) => {
+                    const isExpanded = expandedId === student.id;
+
+                    return (
+                        <React.Fragment key={student.id}>
+                            <tr
+                                onClick={() => handleToggleExpand(student.id)}
+                                className={`transition-colors ${isSuperAdmin ? "cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/40" : ""} ${isExpanded ? "bg-red-50/20 dark:bg-red-950/10" : ""}`}
                             >
-                                {student.feeConfig.dojoName}
-                            </span>
-                        </td>
-                        <td className="px-5 py-4 text-slate-600 dark:text-slate-300 font-medium">
-                            {student.feeConfig.amount.toLocaleString("vi-VN")} đ
-                            <span className="text-xs text-slate-400 block font-normal">
-                                ({student.feeConfig.cycleLabel})
-                            </span>
-                        </td>
-                        <td className="px-5 py-4 text-slate-500 dark:text-slate-400 text-xs">
-                            {student.isPaid && student.paidAt
-                                ? new Date(student.paidAt).toLocaleDateString("vi-VN")
-                                : "—"}
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                            <div className="inline-flex items-center space-x-2">
-                                <div className="flex flex-col items-end">
+                                {/* Cột Môn sinh (Hiển thị ảnh thẻ Avatar chuẩn có sẵn) */}
+                                <td className="px-5 py-3.5">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="relative w-9 h-9 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+                                            {student.avatar ? (
+                                                <Image
+                                                    src={student.avatar}
+                                                    alt={student.fullName}
+                                                    fill
+                                                    className="object-cover"
+                                                />
+                                            ) : (
+                                                <span className="text-xs font-bold text-slate-500 uppercase">
+                                                    {student.fullName.charAt(0)}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-900 dark:text-white leading-tight">
+                                                {student.fullName}
+                                            </p>
+                                            <span className="font-mono text-xs text-slate-500 font-semibold">
+                                                {student.studentCode}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {/* Cột Sân tập */}
+                                <td className="px-5 py-3.5">
                                     <span
-                                        className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${student.isPaid
-                                                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                                : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${student.dojo === "TACHI"
+                                            ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                                            : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 border border-red-200 dark:border-red-800"
                                             }`}
                                     >
-                                        {student.isPaid ? "Đã đóng" : "Chưa đóng"}
+                                        {student.feeConfig.dojoName}
                                     </span>
-                                    {student.paymentMethod === "Chuyển khoản" && (
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                setProofModalData({
-                                                    studentId: student.id,
-                                                    fullName: student.fullName,
-                                                    month: student.month,
-                                                    year: student.year,
-                                                });
-                                            }}
-                                            title="Bấm vào để xem ảnh biên lai chuyển khoản"
-                                            className="text-[10px] text-blue-600 dark:text-blue-400 underline mt-1 hover:text-blue-700 cursor-pointer bg-transparent border-none p-0"
-                                        >
-                                            Chuyển khoản
-                                        </button>
-                                    )}
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setSelectedStudent(student);
-                                    }}
-                                    title="Chỉnh sửa thông tin học phí"
-                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                                >
-                                    <Pencil className="w-3.5 h-3.5 pointer-events-none" />
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                ))}
+                                </td>
+
+                                {/* Cột Mức thu */}
+                                <td className="px-5 py-3.5 text-slate-600 dark:text-slate-300 font-medium">
+                                    {(student.amount || student.feeConfig.amount).toLocaleString("vi-VN")} đ
+                                    <span className="text-xs text-slate-400 block font-normal">
+                                        ({student.feeConfig.cycleLabel})
+                                    </span>
+                                </td>
+
+                                {/* Cột Ngày đóng */}
+                                <td className="px-5 py-3.5 text-slate-500 dark:text-slate-400 text-xs">
+                                    {student.isPaid && student.paidAt
+                                        ? new Date(student.paidAt).toLocaleDateString("vi-VN")
+                                        : "—"}
+                                </td>
+
+                                {/* Cột Tình trạng & Thao tác */}
+                                <td className="px-5 py-3.5 text-right">
+                                    <div className="inline-flex items-center space-x-2.5">
+                                        <div className="flex flex-col items-end">
+                                            <span
+                                                className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${student.isPaid
+                                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                                    : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                                                    }`}
+                                            >
+                                                {student.isPaid ? "Đã đóng" : "Chưa đóng"}
+                                            </span>
+
+                                            {student.receiptUrl && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPreviewImage(student.receiptUrl || null);
+                                                    }}
+                                                    className="inline-flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:underline mt-1 cursor-pointer"
+                                                >
+                                                    <Eye className="w-3 h-3" />
+                                                    <span>Xem biên lai</span>
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Nút Thu phí chỉ hiển thị cho SUPER_ADMIN */}
+                                        {isSuperAdmin && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleToggleExpand(student.id);
+                                                }}
+                                                className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-red-50 hover:text-red-600 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors inline-flex items-center space-x-1 cursor-pointer"
+                                            >
+                                                <span>{isExpanded ? "Đóng" : "Thu phí"}</span>
+                                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                            </button>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {/* Khung trượt xổ xuống (Panel Edit độc lập) */}
+                            {isExpanded && (
+                                <FeeRowEditPanel
+                                    student={student}
+                                    onClose={() => setExpandedId(null)}
+                                />
+                            )}
+                        </React.Fragment>
+                    );
+                })}
             </tbody>
 
-            {isClient && selectedStudent && createPortal(
-                <FeeEditModal
-                    isOpen={!!selectedStudent}
-                    onClose={() => setSelectedStudent(null)}
-                    data={{
-                        studentId: selectedStudent.id,
-                        studentCode: selectedStudent.studentCode,
-                        fullName: selectedStudent.fullName,
-                        avatar: selectedStudent.avatar,
-                        month: selectedStudent.month,
-                        year: selectedStudent.year,
-                        amount: selectedStudent.feeConfig.amount,
-                        isPaid: selectedStudent.isPaid,
-                        paidAt: selectedStudent.paidAt,
-                        paymentMethod: selectedStudent.paymentMethod,
-                    }}
-                />,
-                document.body
-            )}
-
-            {isClient && proofModalData && (
-                <PaymentProofModal
-                    isOpen={!!proofModalData}
-                    onClose={() => setProofModalData(null)}
-                    studentId={proofModalData.studentId}
-                    studentName={proofModalData.fullName}
-                    month={proofModalData.month}
-                    year={proofModalData.year}
-                />
+            {/* Modal phóng to ảnh biên lai */}
+            {previewImage && (
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-4 space-y-3 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                            <span className="text-sm font-bold text-slate-900 dark:text-white">Ảnh chứng từ / Biên lai</span>
+                            <button
+                                type="button"
+                                onClick={() => setPreviewImage(null)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="relative w-full h-80 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
+                            <Image
+                                src={previewImage}
+                                alt="Chứng từ học phí"
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );
