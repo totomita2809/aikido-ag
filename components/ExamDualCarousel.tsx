@@ -10,6 +10,7 @@ import {
     getCurrentUserRole,
     updateCarouselEventInfo,
     deleteCarouselEvent,
+    deleteSingleCarouselImage,
     getUploadPresignedUrls,
     createCarouselEventWithDirectUrls
 } from "@/app/actions/carousel";
@@ -54,6 +55,10 @@ export default function ExamDualCarousel() {
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [pendingActionType, setPendingActionType] = useState<"CREATE" | "UPDATE" | "DELETE">("CREATE");
     const [isPending, startTransition] = useTransition();
+
+    // Quản lý ảnh hiện có trong Modal Sửa
+    const [editCurrentHImages, setEditCurrentHImages] = useState<string[]>([]);
+    const [editCurrentVImages, setEditCurrentVImages] = useState<string[]>([]);
 
     // Tiến trình xử lý
     const [uploadStatusText, setUploadStatusText] = useState("");
@@ -241,12 +246,32 @@ export default function ExamDualCarousel() {
         setSelectedImages((prev) => prev.filter((img) => img.id !== idToRemove));
     };
 
+    // Mở modal sửa và load toàn bộ dữ liệu kèm ảnh hiện có
     const handleOpenEditModal = () => {
         if (!currentEvent) return;
         setFormTitle(currentEvent.title);
         setFormDate(currentEvent.eventDate.replace(/-/g, "/"));
         setFormDescription(currentEvent.description || "");
+        setEditCurrentHImages(currentEvent.horizontalImages || []);
+        setEditCurrentVImages(currentEvent.verticalImages || []);
         setIsEditModalOpen(true);
+    };
+
+    // Xóa trực tiếp từng ảnh cũ trong modal sửa
+    const handleRemoveExistingImage = async (imgUrl: string, type: "H" | "V") => {
+        if (!confirm("Bạn có chắc chắn muốn xóa ảnh này khỏi sự kiện?")) return;
+        try {
+            const res = await deleteSingleCarouselImage(imgUrl);
+            alert(res.message);
+            if (type === "H") {
+                setEditCurrentHImages((prev) => prev.filter((url) => url !== imgUrl));
+            } else {
+                setEditCurrentVImages((prev) => prev.filter((url) => url !== imgUrl));
+            }
+            fetchEvents();
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : "Đã xảy ra lỗi khi xóa ảnh");
+        }
     };
 
     // Thực thi Server Action (Direct Upload hoặc Edit/Delete)
@@ -636,23 +661,36 @@ export default function ExamDualCarousel() {
                 </div>
             )}
 
-            {/* MODAL SỬA SỰ KIỆN */}
+            {/* MODAL SỬA SỰ KIỆN CÓ HIỂN THỊ ẢNH VÀ XÓA ẢNH */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto">
                         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Edit3 className="w-4 h-4 text-amber-500" />
-                                <span>Chỉnh Sửa Sự Kiện</span>
-                            </h3>
-                            <button type="button" onClick={() => setIsEditModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Edit3 className="w-4 h-4 text-amber-500" />
+                                    <span>Chỉnh Sửa Sự Kiện & Quản Lý Hình Ảnh</span>
+                                </h3>
+                                <span className="text-xs text-slate-400">
+                                    {isSuperAdmin
+                                        ? "Cập nhật thông tin và quản lý ảnh trong sự kiện"
+                                        : "Gửi yêu cầu chỉnh sửa tới HLV Trưởng"}
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
                         <div className="space-y-3.5 text-xs">
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-700 dark:text-slate-300">Tiêu đề sự kiện (*):</label>
+                                <label className="font-bold text-slate-700 dark:text-slate-300">
+                                    Tiêu đề sự kiện (*):
+                                </label>
                                 <input
                                     type="text"
                                     value={formTitle}
@@ -662,7 +700,9 @@ export default function ExamDualCarousel() {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-700 dark:text-slate-300">Ngày diễn ra (dd/MM/yyyy) (*):</label>
+                                <label className="font-bold text-slate-700 dark:text-slate-300">
+                                    Ngày diễn ra (dd/MM/yyyy) (*):
+                                </label>
                                 <div className="relative flex items-center">
                                     <input
                                         type="text"
@@ -674,19 +714,31 @@ export default function ExamDualCarousel() {
                                         type="button"
                                         onClick={() => {
                                             if (editDatePickerRef.current) {
-                                                try { editDatePickerRef.current.showPicker(); } catch { editDatePickerRef.current.focus(); }
+                                                try {
+                                                    editDatePickerRef.current.showPicker();
+                                                } catch {
+                                                    editDatePickerRef.current.focus();
+                                                }
                                             }
                                         }}
-                                        className="absolute right-2.5 p-1 text-slate-400 hover:text-amber-500 transition-colors"
+                                        className="absolute right-2.5 p-1 text-slate-400 hover:text-amber-500 transition-colors cursor-pointer"
                                     >
                                         <CalendarIcon className="w-4 h-4" />
                                     </button>
-                                    <input ref={editDatePickerRef} type="date" onChange={handleNativeDateSelect} className="sr-only" tabIndex={-1} />
+                                    <input
+                                        ref={editDatePickerRef}
+                                        type="date"
+                                        onChange={handleNativeDateSelect}
+                                        className="sr-only"
+                                        tabIndex={-1}
+                                    />
                                 </div>
                             </div>
 
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-700 dark:text-slate-300">Mô tả ngắn:</label>
+                                <label className="font-bold text-slate-700 dark:text-slate-300">
+                                    Mô tả ngắn:
+                                </label>
                                 <textarea
                                     value={formDescription}
                                     onChange={(e) => setFormDescription(e.target.value)}
@@ -695,11 +747,67 @@ export default function ExamDualCarousel() {
                                 />
                             </div>
 
+                            {/* DANH SÁCH ẢNH HIỆN CÓ TRONG SỰ KIỆN */}
+                            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <div className="flex items-center justify-between">
+                                    <label className="font-bold text-slate-700 dark:text-slate-300">
+                                        Hình ảnh hiện tại ({editCurrentHImages.length + editCurrentVImages.length} ảnh):
+                                    </label>
+                                    <span className="text-[10px] text-slate-400">
+                                        * Nhấp icon thùng rác để xóa bớt ảnh
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 max-h-56 overflow-y-auto p-1.5 border border-slate-100 dark:border-slate-800 rounded-xl">
+                                    {/* Ảnh ngang */}
+                                    {editCurrentHImages.map((src, idx) => (
+                                        <div
+                                            key={`h-${idx}`}
+                                            className="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 aspect-square"
+                                        >
+                                            <Image src={src} alt="Horizontal" fill className="object-cover" />
+                                            <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded shadow-xs bg-blue-600 text-white">
+                                                Ngang
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveExistingImage(src, "H")}
+                                                className="absolute top-1.5 right-1.5 p-1.5 bg-black/70 hover:bg-red-600 text-white rounded-full shadow-md transition-colors cursor-pointer"
+                                                title="Xóa ảnh này khỏi sự kiện"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+
+                                    {/* Ảnh dọc */}
+                                    {editCurrentVImages.map((src, idx) => (
+                                        <div
+                                            key={`v-${idx}`}
+                                            className="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 aspect-square"
+                                        >
+                                            <Image src={src} alt="Vertical" fill className="object-cover" />
+                                            <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded shadow-xs bg-purple-600 text-white">
+                                                Dọc
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveExistingImage(src, "V")}
+                                                className="absolute top-1.5 right-1.5 p-1.5 bg-black/70 hover:bg-red-600 text-white rounded-full shadow-md transition-colors cursor-pointer"
+                                                title="Xóa ảnh này khỏi sự kiện"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                                 <button
                                     type="button"
                                     onClick={() => setIsEditModalOpen(false)}
-                                    className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg"
+                                    className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
                                 >
                                     Hủy
                                 </button>
@@ -707,7 +815,7 @@ export default function ExamDualCarousel() {
                                     type="button"
                                     disabled={isPending}
                                     onClick={handleUpdateSubmit}
-                                    className="px-4 py-1.5 font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs"
+                                    className="px-4 py-1.5 font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                                 >
                                     {isPending ? "Đang xử lý..." : isSuperAdmin ? "Lưu thay đổi" : "Gửi yêu cầu sửa"}
                                 </button>

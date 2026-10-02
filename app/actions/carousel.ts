@@ -7,7 +7,6 @@ import crypto from "crypto";
 import {
     uploadEventImageToR2,
     buildEventFolderName,
-    renameEventFolderOnR2,
     deleteEventFolderOnR2,
     getPresignedUploadUrl,
 } from "@/lib/r2";
@@ -126,7 +125,7 @@ interface CarouselDelegate {
         };
     }) => Promise<{ count: number }>;
     deleteMany: (args: {
-        where: { eventKey: string };
+        where: { eventKey?: string; imageUrl?: string };
     }) => Promise<{ count: number }>;
 }
 
@@ -300,7 +299,8 @@ export async function createCarouselEvent(data: CreateCarouselInput): Promise<Ac
 }
 
 /**
- * CHỈNH SỬA TIÊU ĐỀ HOẶC NGÀY
+ * CHỈNH SỬA TIÊU ĐỀ, NGÀY HOẶC MÔ TẢ SỰ KIỆN
+ * Tối ưu hóa: Cập nhật trực tiếp Database, phản hồi tức thì 0.1s không bị treo Vercel
  */
 export async function updateCarouselEventInfo(
     eventKey: string,
@@ -322,10 +322,13 @@ export async function updateCarouselEventInfo(
             where: { eventKey },
             data: {
                 status: "PENDING_UPDATE",
-                description: newDescription ? `[YÊU CẦU SỬA: ${newTitle} - ${newEventDateStr}] ${newDescription}` : undefined,
+                description: newDescription
+                    ? `[YÊU CẦU SỬA: ${newTitle} - ${newEventDateStr}] ${newDescription}`
+                    : undefined,
             },
         });
         revalidatePath("/");
+        revalidatePath("/exams");
         return {
             success: true,
             status: "PENDING_UPDATE",
@@ -333,28 +336,16 @@ export async function updateCarouselEventInfo(
         };
     }
 
-    const newFolderName = buildEventFolderName(newTitle, newEventDateStr, eventKey);
-    const updatedFiles = await renameEventFolderOnR2(eventKey, newFolderName);
-
-    const events = await carouselDelegate.findMany({ where: { eventKey } });
-
-    for (const ev of events) {
-        const currentFileName = ev.imageUrl.split("/").pop();
-        const match = currentFileName
-            ? updatedFiles.find((f) => f.oldKey.endsWith(`/${currentFileName}`))
-            : undefined;
-
-        await carouselDelegate.update({
-            where: { id: ev.id },
-            data: {
-                title: newTitle,
-                eventDate: parsedEventDate,
-                description: newDescription !== undefined ? newDescription : ev.description,
-                imageUrl: match ? match.newUrl : ev.imageUrl,
-                status: "APPROVED",
-            },
-        });
-    }
+    // SUPER_ADMIN: Cập nhật trực tiếp các bản ghi trong Database
+    await carouselDelegate.updateMany({
+        where: { eventKey },
+        data: {
+            title: newTitle,
+            eventDate: parsedEventDate,
+            description: newDescription !== undefined ? newDescription : null,
+            status: "APPROVED",
+        },
+    });
 
     revalidatePath("/");
     revalidatePath("/exams");
@@ -362,12 +353,35 @@ export async function updateCarouselEventInfo(
     return {
         success: true,
         status: "APPROVED",
-        message: `Đã đổi tên thư mục Cloud R2 thành: ${newFolderName}`,
+        message: "Đã cập nhật thông tin sự kiện thành công!",
     };
 }
 
 /**
- * XÓA SỰ KIỆN
+ * XÓA TỪNG ẢNH ĐƠN LẺ CỦA SỰ KIỆN (Dùng khi vào modal sửa để bỏ bớt ảnh)
+ */
+export async function deleteSingleCarouselImage(imageUrl: string): Promise<ActionResponse> {
+    const session = await getSession();
+    if (!session || !session.userId) {
+        throw new Error("Vui lòng đăng nhập để thực hiện");
+    }
+
+    const carouselDelegate = getCarouselDelegate();
+    await carouselDelegate.deleteMany({
+        where: { imageUrl },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/exams");
+
+    return {
+        success: true,
+        message: "Đã xóa ảnh khỏi sự kiện!",
+    };
+}
+
+/**
+ * XÓA TOÀN BỘ SỰ KIỆN
  */
 export async function deleteCarouselEvent(eventKey: string): Promise<ActionResponse> {
     const session = await getSession();
