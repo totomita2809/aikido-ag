@@ -2,15 +2,18 @@
 
 import { useState, useEffect, useRef, useTransition } from "react";
 import Image from "next/image";
-import { Sparkles, X, PlusCircle, Image as ImageIcon, CheckCircle, Clock, Archive, Calendar as CalendarIcon, Trash2, AlertTriangle, Edit3 } from "lucide-react";
 import {
-    createCarouselEvent,
+    Sparkles, X, PlusCircle, Image as ImageIcon, CheckCircle, Clock,
+    Archive, Calendar as CalendarIcon, Trash2, AlertTriangle, Edit3, Loader2
+} from "lucide-react";
+import {
     getCurrentUserRole,
-    CarouselImageItem,
     updateCarouselEventInfo,
-    deleteCarouselEvent
+    deleteCarouselEvent,
+    getUploadPresignedUrls,
+    createCarouselEventWithDirectUrls
 } from "@/app/actions/carousel";
-import { compressMultipleImages } from "@/lib/image-compressor";
+import { compressImage } from "@/lib/image-compressor";
 
 export interface CarouselEventData {
     id?: string;
@@ -21,6 +24,16 @@ export interface CarouselEventData {
     horizontalImages: string[];
     verticalImages: string[];
     createdAt?: string;
+}
+
+interface ImageUploadItem {
+    id: string;
+    rawFile: File;
+    previewUrl: string;
+    aspectRatio: "LANDSCAPE" | "PORTRAIT";
+    compressedBlob?: Blob;
+    status: "COMPRESSING" | "READY" | "UPLOADING" | "DONE" | "ERROR";
+    progress: number;
 }
 
 export default function ExamDualCarousel() {
@@ -35,14 +48,16 @@ export default function ExamDualCarousel() {
     const [activeLightboxImage, setActiveLightboxImage] = useState<string | null>(null);
     const [userRole, setUserRole] = useState<string | null>(null);
 
-    // Modal tạo sự kiện / sửa sự kiện / xác nhận
+    // Modal
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
     const [pendingActionType, setPendingActionType] = useState<"CREATE" | "UPDATE" | "DELETE">("CREATE");
     const [isPending, startTransition] = useTransition();
 
-    // Form data
+    // Tiến trình xử lý
+    const [uploadStatusText, setUploadStatusText] = useState("");
+
     const getTodayVNDateStr = () => {
         const d = new Date();
         const dd = String(d.getDate()).padStart(2, "0");
@@ -54,14 +69,12 @@ export default function ExamDualCarousel() {
     const [formTitle, setFormTitle] = useState("");
     const [formDate, setFormDate] = useState(getTodayVNDateStr());
     const [formDescription, setFormDescription] = useState("");
-    const [selectedImages, setSelectedImages] = useState<CarouselImageItem[]>([]);
+    const [selectedImages, setSelectedImages] = useState<ImageUploadItem[]>([]);
     const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
 
-    // Ref cho ô input type="date" ẩn
     const datePickerRef = useRef<HTMLInputElement>(null);
     const editDatePickerRef = useRef<HTMLInputElement>(null);
 
-    // Tự động kiểm tra quyền hạn HLV / HLV Trưởng
     useEffect(() => {
         getCurrentUserRole()
             .then((role: string | null) => {
@@ -70,7 +83,6 @@ export default function ExamDualCarousel() {
             .catch(() => { });
     }, []);
 
-    // Tải danh sách ảnh sự kiện
     const fetchEvents = () => {
         fetch("/api/exam-photos")
             .then((res) => res.json())
@@ -147,7 +159,6 @@ export default function ExamDualCarousel() {
         return () => clearInterval(timer);
     }, [activeVList.length]);
 
-    // Xử lý nhập ngày: chỉ cho gõ số, tự chèn "/"
     const handleDateTextChange = (val: string) => {
         const cleaned = val.replace(/\D/g, "").slice(0, 8);
         let formatted = cleaned;
@@ -159,47 +170,77 @@ export default function ExamDualCarousel() {
         setFormDate(formatted);
     };
 
-    // Khi chọn ngày từ popup lịch native
     const handleNativeDateSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const dateVal = e.target.value;
         if (!dateVal) return;
         const [y, m, d] = dateVal.split("-");
-        if (y && m && d) {
-            setFormDate(`${d}/${m}/${y}`);
-        }
+        if (y && m && d) setFormDate(`${d}/${m}/${y}`);
     };
 
-    // Xử lý chọn nhiều ảnh: nén song song dung lượng thấp giữ nguyên chất lượng
+    // Chọn ảnh và nén luân phiên theo lô nhỏ 2 ảnh/lượt
     const handleMultipleImagesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        try {
-            const compressedList = await compressMultipleImages(files, {
-                maxDimension: 2048,
-                quality: 0.85,
-                mimeType: "image/webp",
-            });
+        const newItems: ImageUploadItem[] = Array.from(files).map((file, idx) => ({
+            id: `img-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+            rawFile: file,
+            previewUrl: URL.createObjectURL(file),
+            aspectRatio: "LANDSCAPE",
+            status: "COMPRESSING",
+            progress: 25,
+        }));
 
-            const formattedImages: CarouselImageItem[] = compressedList.map((item) => ({
-                url: item.base64,
-                aspectRatio: item.aspectRatio,
-                fileName: item.fileName,
-            }));
+        setSelectedImages((prev) => [...prev, ...newItems]);
+        e.target.value = "";
 
-            setSelectedImages((prev) => [...prev, ...formattedImages]);
-        } catch (err: unknown) {
-            alert(err instanceof Error ? err.message : "Đã xảy ra lỗi khi nén hình ảnh");
-        } finally {
-            e.target.value = "";
+        const CHUNK_SIZE = 2;
+        for (let i = 0; i < newItems.length; i += CHUNK_SIZE) {
+            const chunk = newItems.slice(i, i + CHUNK_SIZE);
+            await Promise.all(
+                chunk.map(async (item) => {
+                    try {
+                        const res = await compressImage(item.rawFile, {
+                            maxDimension: 2048,
+                            quality: 0.85,
+                            mimeType: "image/webp",
+                        });
+
+                        const byteString = atob(res.base64.split(",")[1]);
+                        const ab = new ArrayBuffer(byteString.length);
+                        const ia = new Uint8Array(ab);
+                        for (let k = 0; k < byteString.length; k++) {
+                            ia[k] = byteString.charCodeAt(k);
+                        }
+                        const blob = new Blob([ab], { type: "image/webp" });
+
+                        setSelectedImages((prev) =>
+                            prev.map((it) =>
+                                it.id === item.id
+                                    ? {
+                                        ...it,
+                                        aspectRatio: res.aspectRatio,
+                                        compressedBlob: blob,
+                                        status: "READY",
+                                        progress: 100,
+                                    }
+                                    : it
+                            )
+                        );
+                    } catch {
+                        setSelectedImages((prev) =>
+                            prev.map((it) => (it.id === item.id ? { ...it, status: "ERROR" } : it))
+                        );
+                    }
+                })
+            );
         }
     };
 
-    const handleRemoveImage = (indexToRemove: number) => {
-        setSelectedImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    const handleRemoveImage = (idToRemove: string) => {
+        setSelectedImages((prev) => prev.filter((img) => img.id !== idToRemove));
     };
 
-    // Mở modal sửa sự kiện hiện tại
     const handleOpenEditModal = () => {
         if (!currentEvent) return;
         setFormTitle(currentEvent.title);
@@ -208,17 +249,82 @@ export default function ExamDualCarousel() {
         setIsEditModalOpen(true);
     };
 
-    // Thực thi Server Action
+    // Thực thi Server Action (Direct Upload hoặc Edit/Delete)
     const executeAction = () => {
         setConfirmModalOpen(false);
-        startTransition(async () => {
-            try {
-                if (pendingActionType === "CREATE") {
-                    const res = await createCarouselEvent({
+
+        if (pendingActionType === "CREATE") {
+            startTransition(async () => {
+                try {
+                    setUploadStatusText("1/3: Đang khởi tạo kết nối Cloud R2...");
+
+                    // 1. Xin vé Presigned URLs từ server
+                    const presignPayload = selectedImages.map((img) => ({
+                        clientTempId: img.id,
+                        fileName: img.rawFile.name,
+                        aspectRatio: img.aspectRatio,
+                    }));
+
+                    const { eventKey, items: presignedList } = await getUploadPresignedUrls(
+                        formTitle.trim(),
+                        formDate.trim(),
+                        presignPayload
+                    );
+
+                    // 2. Client bắn trực tiếp lên Cloudflare R2 qua PUT
+                    let finishedCount = 0;
+                    const totalCount = selectedImages.length;
+                    const finalUploadedUrls: { url: string; aspectRatio: "LANDSCAPE" | "PORTRAIT" }[] = [];
+
+                    const CONCURRENCY = 4;
+                    for (let i = 0; i < selectedImages.length; i += CONCURRENCY) {
+                        const batch = selectedImages.slice(i, i + CONCURRENCY);
+                        await Promise.all(
+                            batch.map(async (imgItem) => {
+                                const target = presignedList.find((p) => p.clientTempId === imgItem.id);
+                                if (!target || !imgItem.compressedBlob) return;
+
+                                setSelectedImages((prev) =>
+                                    prev.map((it) =>
+                                        it.id === imgItem.id ? { ...it, status: "UPLOADING", progress: 65 } : it
+                                    )
+                                );
+
+                                const uploadRes = await fetch(target.uploadUrl, {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "image/webp" },
+                                    body: imgItem.compressedBlob,
+                                });
+
+                                if (!uploadRes.ok) {
+                                    throw new Error(`Tải ảnh ${imgItem.rawFile.name} lên Cloudflare R2 thất bại!`);
+                                }
+
+                                finishedCount++;
+                                setUploadStatusText(`2/3: Đang tải lên R2... (${finishedCount}/${totalCount} ảnh)`);
+
+                                setSelectedImages((prev) =>
+                                    prev.map((it) =>
+                                        it.id === imgItem.id ? { ...it, status: "DONE", progress: 100 } : it
+                                    )
+                                );
+
+                                finalUploadedUrls.push({
+                                    url: target.publicUrl,
+                                    aspectRatio: target.aspectRatio,
+                                });
+                            })
+                        );
+                    }
+
+                    // 3. Gửi danh sách URL về Database để lưu
+                    setUploadStatusText("3/3: Đang cập nhật cơ sở dữ liệu...");
+                    const res = await createCarouselEventWithDirectUrls({
                         title: formTitle.trim(),
                         eventDate: formDate.trim(),
                         description: formDescription.trim() || undefined,
-                        images: selectedImages,
+                        eventKey,
+                        images: finalUploadedUrls,
                     });
 
                     setSubmitResult({ success: true, message: res.message });
@@ -227,12 +333,23 @@ export default function ExamDualCarousel() {
                     setTimeout(() => {
                         setIsCreateModalOpen(false);
                         setSubmitResult(null);
+                        setUploadStatusText("");
                         setFormTitle("");
                         setFormDate(getTodayVNDateStr());
                         setFormDescription("");
                         setSelectedImages([]);
                     }, 1600);
-                } else if (pendingActionType === "UPDATE") {
+                } catch (err: unknown) {
+                    setUploadStatusText("");
+                    alert(err instanceof Error ? err.message : "Đã xảy ra lỗi khi tạo sự kiện");
+                }
+            });
+            return;
+        }
+
+        startTransition(async () => {
+            try {
+                if (pendingActionType === "UPDATE") {
                     const targetKey = currentEvent?.eventKey || currentEvent?.id || "";
                     const res = await updateCarouselEventInfo(
                         targetKey,
@@ -256,7 +373,6 @@ export default function ExamDualCarousel() {
         });
     };
 
-    // Xử lý nộp form tạo mới
     const handleCreateSubmit = () => {
         if (!formTitle.trim()) {
             alert("Vui lòng nhập tiêu đề sự kiện!");
@@ -271,6 +387,12 @@ export default function ExamDualCarousel() {
             return;
         }
 
+        const isStillCompressing = selectedImages.some((img) => img.status === "COMPRESSING");
+        if (isStillCompressing) {
+            alert("Hệ thống đang hoàn tất tối ưu các ảnh cuối cùng, vui lòng đợi vài giây!");
+            return;
+        }
+
         setPendingActionType("CREATE");
         if (isSuperAdmin) {
             setConfirmModalOpen(true);
@@ -279,7 +401,6 @@ export default function ExamDualCarousel() {
         executeAction();
     };
 
-    // Xử lý nộp form cập nhật
     const handleUpdateSubmit = () => {
         if (!formTitle.trim() || !formDate.trim() || formDate.length < 10) {
             alert("Vui lòng nhập đúng tiêu đề và định dạng ngày dd/MM/yyyy!");
@@ -294,7 +415,6 @@ export default function ExamDualCarousel() {
         executeAction();
     };
 
-    // Xử lý nút xóa sự kiện
     const handleDeleteClick = () => {
         setPendingActionType("DELETE");
         if (isSuperAdmin) {
@@ -334,8 +454,8 @@ export default function ExamDualCarousel() {
                             </p>
                         )}
 
-                        {recentEvents.length > 1 && (
-                            <div className="flex items-center space-x-2 mt-2">
+                        {events.length > 0 && (
+                            <div className="flex items-center flex-wrap gap-2 mt-2">
                                 <span className="text-[11px] font-semibold text-slate-400">Gần đây:</span>
                                 {recentEvents.map((evt, idx) => (
                                     <button
@@ -347,9 +467,9 @@ export default function ExamDualCarousel() {
                                             setVIndex1(0);
                                             setVIndex2(1);
                                         }}
-                                        className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium transition-all cursor-pointer ${selectedEventIndex === idx
-                                            ? "bg-red-600 text-white font-bold"
-                                            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                                        className={`px-2.5 py-0.5 rounded-lg text-[11px] font-mono font-medium transition-all cursor-pointer ${selectedEventIndex === idx
+                                                ? "bg-red-600 text-white font-bold shadow-xs"
+                                                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                                             }`}
                                     >
                                         {evt.eventDate}
@@ -374,7 +494,6 @@ export default function ExamDualCarousel() {
 
                     {canManage && (
                         <>
-                            {/* Nút Sửa sự kiện đang hiển thị */}
                             <button
                                 type="button"
                                 onClick={handleOpenEditModal}
@@ -385,7 +504,6 @@ export default function ExamDualCarousel() {
                                 <span className="hidden sm:inline">Sửa</span>
                             </button>
 
-                            {/* Nút Xóa sự kiện đang hiển thị */}
                             <button
                                 type="button"
                                 onClick={handleDeleteClick}
@@ -396,7 +514,6 @@ export default function ExamDualCarousel() {
                                 <span className="hidden sm:inline">Xóa</span>
                             </button>
 
-                            {/* Nút Thêm sự kiện */}
                             <button
                                 type="button"
                                 onClick={() => {
@@ -499,7 +616,7 @@ export default function ExamDualCarousel() {
                 </div>
             </div>
 
-            {/* Lightbox Xem phóng to */}
+            {/* Lightbox Phóng to */}
             {activeLightboxImage && (
                 <div
                     onClick={() => setActiveLightboxImage(null)}
@@ -513,15 +630,8 @@ export default function ExamDualCarousel() {
                     >
                         <X className="w-6 h-6" />
                     </button>
-
                     <div className="relative w-full h-full max-w-6xl max-h-[85vh] flex items-center justify-center">
-                        <Image
-                            src={activeLightboxImage}
-                            alt="Exam Enlarged View"
-                            fill
-                            className="object-contain rounded-xl"
-                            sizes="100vw"
-                        />
+                        <Image src={activeLightboxImage} alt="Exam Enlarged View" fill className="object-contain rounded-xl" sizes="100vw" />
                     </div>
                 </div>
             )}
@@ -531,31 +641,18 @@ export default function ExamDualCarousel() {
                 <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
                         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                            <div>
-                                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Edit3 className="w-4 h-4 text-amber-500" />
-                                    <span>Chỉnh Sửa Sự Kiện</span>
-                                </h3>
-                                <span className="text-xs text-slate-400">
-                                    {isSuperAdmin
-                                        ? "Đồng bộ tên thư mục R2 và tiêu đề trên web"
-                                        : "Gửi yêu cầu chỉnh sửa tới HLV Trưởng"}
-                                </span>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setIsEditModalOpen(false)}
-                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                            >
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Edit3 className="w-4 h-4 text-amber-500" />
+                                <span>Chỉnh Sửa Sự Kiện</span>
+                            </h3>
+                            <button type="button" onClick={() => setIsEditModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
                         <div className="space-y-3.5 text-xs">
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-700 dark:text-slate-300">
-                                    Tiêu đề sự kiện (*):
-                                </label>
+                                <label className="font-bold text-slate-700 dark:text-slate-300">Tiêu đề sự kiện (*):</label>
                                 <input
                                     type="text"
                                     value={formTitle}
@@ -565,9 +662,7 @@ export default function ExamDualCarousel() {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-700 dark:text-slate-300">
-                                    Ngày diễn ra (dd/MM/yyyy) (*):
-                                </label>
+                                <label className="font-bold text-slate-700 dark:text-slate-300">Ngày diễn ra (dd/MM/yyyy) (*):</label>
                                 <div className="relative flex items-center">
                                     <input
                                         type="text"
@@ -582,24 +677,16 @@ export default function ExamDualCarousel() {
                                                 try { editDatePickerRef.current.showPicker(); } catch { editDatePickerRef.current.focus(); }
                                             }
                                         }}
-                                        className="absolute right-2.5 p-1 text-slate-400 hover:text-amber-500 transition-colors cursor-pointer"
+                                        className="absolute right-2.5 p-1 text-slate-400 hover:text-amber-500 transition-colors"
                                     >
                                         <CalendarIcon className="w-4 h-4" />
                                     </button>
-                                    <input
-                                        ref={editDatePickerRef}
-                                        type="date"
-                                        onChange={handleNativeDateSelect}
-                                        className="sr-only"
-                                        tabIndex={-1}
-                                    />
+                                    <input ref={editDatePickerRef} type="date" onChange={handleNativeDateSelect} className="sr-only" tabIndex={-1} />
                                 </div>
                             </div>
 
                             <div className="space-y-1">
-                                <label className="font-bold text-slate-700 dark:text-slate-300">
-                                    Mô tả ngắn:
-                                </label>
+                                <label className="font-bold text-slate-700 dark:text-slate-300">Mô tả ngắn:</label>
                                 <textarea
                                     value={formDescription}
                                     onChange={(e) => setFormDescription(e.target.value)}
@@ -612,7 +699,7 @@ export default function ExamDualCarousel() {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditModalOpen(false)}
-                                    className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                                    className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg"
                                 >
                                     Hủy
                                 </button>
@@ -620,7 +707,7 @@ export default function ExamDualCarousel() {
                                     type="button"
                                     disabled={isPending}
                                     onClick={handleUpdateSubmit}
-                                    className="px-4 py-1.5 font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                                    className="px-4 py-1.5 font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-xs"
                                 >
                                     {isPending ? "Đang xử lý..." : isSuperAdmin ? "Lưu thay đổi" : "Gửi yêu cầu sửa"}
                                 </button>
@@ -633,23 +720,15 @@ export default function ExamDualCarousel() {
             {/* MODAL THÊM SỰ KIỆN */}
             {isCreateModalOpen && (
                 <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto">
                         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                             <div>
-                                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                                    Thêm Sự Kiện & Tải Hình Ảnh
-                                </h3>
+                                <h3 className="text-base font-bold text-slate-900 dark:text-white">Thêm Sự Kiện & Tải Hình Ảnh</h3>
                                 <span className="text-xs text-slate-400">
-                                    {isSuperAdmin
-                                        ? "Đăng trực tiếp hiển thị lên website"
-                                        : "Tạo nội dung và gửi HLV Trưởng phê duyệt"}
+                                    {isSuperAdmin ? "Đăng trực tiếp lên website" : "Tạo nội dung và gửi HLV Trưởng duyệt"}
                                 </span>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                            >
+                            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -659,16 +738,12 @@ export default function ExamDualCarousel() {
                                 <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center mx-auto">
                                     {isSuperAdmin ? <CheckCircle className="w-7 h-7" /> : <Clock className="w-7 h-7" />}
                                 </div>
-                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                                    {submitResult.message}
-                                </p>
+                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{submitResult.message}</p>
                             </div>
                         ) : (
                             <div className="space-y-3.5 text-xs">
                                 <div className="space-y-1">
-                                    <label className="font-bold text-slate-700 dark:text-slate-300">
-                                        Tiêu đề sự kiện (*):
-                                    </label>
+                                    <label className="font-bold text-slate-700 dark:text-slate-300">Tiêu đề sự kiện (*):</label>
                                     <input
                                         type="text"
                                         value={formTitle}
@@ -679,19 +754,11 @@ export default function ExamDualCarousel() {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="font-bold text-slate-700 dark:text-slate-300">
-                                        Ngày diễn ra (dd/MM/yyyy) (*):
-                                    </label>
+                                    <label className="font-bold text-slate-700 dark:text-slate-300">Ngày diễn ra (dd/MM/yyyy) (*):</label>
                                     <div className="relative flex items-center">
                                         <input
                                             type="text"
                                             value={formDate}
-                                            onFocus={() => setFormDate("")}
-                                            onBlur={() => {
-                                                if (!formDate.trim() || formDate.trim().length < 10) {
-                                                    setFormDate(getTodayVNDateStr());
-                                                }
-                                            }}
                                             onChange={(e) => handleDateTextChange(e.target.value)}
                                             placeholder="dd/MM/yyyy"
                                             className="w-full px-3 py-2 pr-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-red-500 outline-hidden"
@@ -700,44 +767,29 @@ export default function ExamDualCarousel() {
                                             type="button"
                                             onClick={() => {
                                                 if (datePickerRef.current) {
-                                                    try {
-                                                        datePickerRef.current.showPicker();
-                                                    } catch {
-                                                        datePickerRef.current.focus();
-                                                    }
+                                                    try { datePickerRef.current.showPicker(); } catch { datePickerRef.current.focus(); }
                                                 }
                                             }}
-                                            className="absolute right-2.5 p-1 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
-                                            title="Bấm để chọn lịch"
+                                            className="absolute right-2.5 p-1 text-slate-400 hover:text-red-600 transition-colors"
                                         >
                                             <CalendarIcon className="w-4 h-4" />
                                         </button>
-                                        <input
-                                            ref={datePickerRef}
-                                            type="date"
-                                            onChange={handleNativeDateSelect}
-                                            className="sr-only"
-                                            tabIndex={-1}
-                                        />
+                                        <input ref={datePickerRef} type="date" onChange={handleNativeDateSelect} className="sr-only" tabIndex={-1} />
                                     </div>
-                                    <span className="text-[10px] text-slate-400">
-                                        * Nhấp vào ô để gõ số (hệ thống tự thêm dấu /) hoặc nhấp icon lịch để chọn ngày
-                                    </span>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="font-bold text-slate-700 dark:text-slate-300">
-                                        Mô tả ngắn (nếu có):
-                                    </label>
+                                    <label className="font-bold text-slate-700 dark:text-slate-300">Mô tả ngắn (nếu có):</label>
                                     <textarea
                                         value={formDescription}
                                         onChange={(e) => setFormDescription(e.target.value)}
                                         rows={2}
-                                        placeholder="Ghi chú thêm về sự kiện hoặc lời chúc môn sinh..."
+                                        placeholder="Ghi chú thêm về sự kiện..."
                                         className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-hidden resize-none"
                                     />
                                 </div>
 
+                                {/* Khu vực chọn ảnh và xem danh sách ảnh nén */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <label className="font-bold text-slate-700 dark:text-slate-300">
@@ -760,60 +812,140 @@ export default function ExamDualCarousel() {
                                         />
                                     </label>
 
+                                    {/* GRID ẢNH: CÓ Ô TRÒN TIẾN TRÌNH & NÚT THÙNG RÁC XÓA Ở TRÊN ĐẦU */}
                                     {selectedImages.length > 0 && (
-                                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2 max-h-48 overflow-y-auto p-1 border border-slate-100 dark:border-slate-800 rounded-xl">
-                                            {selectedImages.map((img, idx) => (
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 pt-2 max-h-64 overflow-y-auto p-1.5 border border-slate-100 dark:border-slate-800 rounded-xl">
+                                            {selectedImages.map((img) => (
                                                 <div
-                                                    key={idx}
-                                                    className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 aspect-square"
+                                                    key={img.id}
+                                                    className="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 aspect-square"
                                                 >
                                                     <Image
-                                                        src={img.url}
-                                                        alt={`Preview ${idx + 1}`}
+                                                        src={img.previewUrl}
+                                                        alt="Thumbnail"
                                                         fill
                                                         className="object-cover"
                                                     />
-                                                    <span
-                                                        className={`absolute bottom-1 left-1 px-1 py-0.2 text-[9px] font-bold rounded ${img.aspectRatio === "LANDSCAPE"
-                                                            ? "bg-blue-600 text-white"
-                                                            : "bg-purple-600 text-white"
-                                                            }`}
-                                                    >
-                                                        {img.aspectRatio === "LANDSCAPE" ? "Ngang" : "Dọc"}
-                                                    </span>
+
+                                                    {/* NÚT XÓA Ở GÓC TRÊN ĐẦU ẢNH (Phòng chọn nhầm) */}
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleRemoveImage(idx)}
-                                                        className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-red-600 text-white rounded-full opacity-80 group-hover:opacity-100 transition-all cursor-pointer"
+                                                        onClick={() => handleRemoveImage(img.id)}
+                                                        className="absolute top-1.5 right-1.5 z-30 p-1.5 bg-black/70 hover:bg-red-600 text-white rounded-full shadow-md transition-colors cursor-pointer"
                                                         title="Xóa ảnh này"
                                                     >
                                                         <Trash2 className="w-3 h-3" />
                                                     </button>
+
+                                                    {/* VÒNG TRÒN TIẾN TRÌNH BÊN TRONG ẢNH */}
+                                                    {img.status !== "READY" && (
+                                                        <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[1px] flex flex-col items-center justify-center p-2 text-white">
+                                                            {img.status === "COMPRESSING" ? (
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <div className="relative w-8 h-8 flex items-center justify-center">
+                                                                        <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 36 36">
+                                                                            <path
+                                                                                className="text-slate-600"
+                                                                                strokeWidth="3"
+                                                                                stroke="currentColor"
+                                                                                fill="none"
+                                                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                                            />
+                                                                            <path
+                                                                                className="text-amber-400 transition-all duration-300"
+                                                                                strokeDasharray={`${img.progress}, 100`}
+                                                                                strokeWidth="3"
+                                                                                strokeLinecap="round"
+                                                                                stroke="currentColor"
+                                                                                fill="none"
+                                                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                                            />
+                                                                        </svg>
+                                                                        <Loader2 className="w-3.5 h-3.5 animate-spin absolute text-amber-400" />
+                                                                    </div>
+                                                                    <span className="text-[9px] font-bold text-amber-300">Đang nén</span>
+                                                                </div>
+                                                            ) : img.status === "UPLOADING" ? (
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <div className="relative w-8 h-8 flex items-center justify-center">
+                                                                        <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 36 36">
+                                                                            <path
+                                                                                className="text-slate-600"
+                                                                                strokeWidth="3"
+                                                                                stroke="currentColor"
+                                                                                fill="none"
+                                                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                                            />
+                                                                            <path
+                                                                                className="text-blue-400 transition-all duration-300"
+                                                                                strokeDasharray={`${img.progress}, 100`}
+                                                                                strokeWidth="3"
+                                                                                strokeLinecap="round"
+                                                                                stroke="currentColor"
+                                                                                fill="none"
+                                                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                                            />
+                                                                        </svg>
+                                                                        <span className="absolute text-[8px] font-mono font-bold text-blue-300">{img.progress}%</span>
+                                                                    </div>
+                                                                    <span className="text-[9px] font-bold text-blue-300">Tải lên</span>
+                                                                </div>
+                                                            ) : img.status === "DONE" ? (
+                                                                <div className="flex flex-col items-center gap-0.5 text-emerald-400">
+                                                                    <CheckCircle className="w-6 h-6" />
+                                                                    <span className="text-[9px] font-bold">Xong</span>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-[9px] font-bold text-red-400">Lỗi ảnh</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Nhãn Ngang / Dọc */}
+                                                    <span
+                                                        className={`absolute bottom-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded shadow-xs ${img.aspectRatio === "LANDSCAPE" ? "bg-blue-600 text-white" : "bg-purple-600 text-white"
+                                                            }`}
+                                                    >
+                                                        {img.aspectRatio === "LANDSCAPE" ? "Ngang" : "Dọc"}
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                 </div>
 
+                                {/* Thông báo tiến trình chi tiết khi đang lưu */}
+                                {uploadStatusText && (
+                                    <div className="flex items-center gap-2 p-2.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl text-blue-600 dark:text-blue-400 font-semibold text-xs">
+                                        <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                                        <span>{uploadStatusText}</span>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                                     <button
                                         type="button"
                                         onClick={() => setIsCreateModalOpen(false)}
-                                        className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                                        className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg"
                                     >
                                         Hủy
                                     </button>
                                     <button
                                         type="button"
-                                        disabled={isPending}
+                                        disabled={isPending || selectedImages.some((i) => i.status === "COMPRESSING")}
                                         onClick={handleCreateSubmit}
-                                        className="px-4 py-1.5 font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                                        className="px-4 py-1.5 font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-xs disabled:opacity-50 flex items-center gap-1.5"
                                     >
-                                        {isPending
-                                            ? "Đang lưu..."
-                                            : isSuperAdmin
-                                                ? "Đăng lên Web"
-                                                : "Gửi HLV Trưởng duyệt"}
+                                        {isPending ? (
+                                            <>
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                <span>Đang xử lý Cloud...</span>
+                                            </>
+                                        ) : isSuperAdmin ? (
+                                            "Đăng lên Web"
+                                        ) : (
+                                            "Gửi HLV Trưởng duyệt"
+                                        )}
                                     </button>
                                 </div>
                             </div>
@@ -822,37 +954,34 @@ export default function ExamDualCarousel() {
                 </div>
             )}
 
-            {/* MODAL XÁC NHẬN VÀ XEM LẠI CHI TIẾT DÀNH CHO HLV TRƯỞNG (SUPER_ADMIN) */}
+            {/* MODAL XÁC NHẬN HLV TRƯỞNG */}
             {confirmModalOpen && (
                 <div className="fixed inset-0 z-60 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-red-500/30">
                         <div className="flex items-center gap-2.5 text-red-600 dark:text-red-400">
                             <AlertTriangle className="w-5 h-5 shrink-0" />
-                            <h4 className="text-sm font-bold uppercase tracking-wide">
-                                Xác nhận thao tác HLV Trưởng
-                            </h4>
+                            <h4 className="text-sm font-bold uppercase tracking-wide">Xác nhận thao tác HLV Trưởng</h4>
                         </div>
 
                         <div className="text-xs text-slate-600 dark:text-slate-300 space-y-2 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
                             {pendingActionType === "DELETE" ? (
-                                <p>Bạn đang chuẩn bị <strong className="text-red-600">XÓA VĨNH VIỄN</strong> sự kiện: <strong>{currentEvent.title}</strong> cùng toàn bộ thư mục trên Cloudflare R2.</p>
+                                <p>Bạn đang chuẩn bị <strong className="text-red-600">XÓA VĨNH VIỄN</strong> sự kiện: <strong>{currentEvent.title}</strong> cùng toàn bộ ảnh trên Cloudflare R2.</p>
                             ) : pendingActionType === "UPDATE" ? (
                                 <>
                                     <p><strong>Tiêu đề mới:</strong> {formTitle.trim().toUpperCase()}</p>
                                     <p><strong>Ngày mới:</strong> {formDate}</p>
-                                    <p className="text-amber-500">* Hệ thống sẽ tự đổi tên thư mục tương ứng trên Cloudflare R2.</p>
                                 </>
                             ) : (
                                 <>
                                     <p><strong>Tiêu đề:</strong> {formTitle.trim().toUpperCase()}</p>
                                     <p><strong>Ngày diễn ra:</strong> {formDate}</p>
-                                    <p><strong>Số lượng ảnh tải lên:</strong> {selectedImages.length} ảnh</p>
+                                    <p><strong>Số lượng ảnh:</strong> {selectedImages.length} ảnh (Tải trực tiếp lên R2)</p>
                                 </>
                             )}
                         </div>
 
                         <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl p-3 text-[11px] text-red-700 dark:text-red-300">
-                            ⚠️ <strong>Lưu ý HLV Trưởng:</strong> Thao tác này sẽ tác động trực tiếp vào cơ sở dữ liệu và Cloudflare R2, <strong>không thể hoàn tác</strong>!
+                            ⚠️ <strong>Lưu ý:</strong> Thao tác này sẽ cập nhật trực tiếp lên Cloudflare R2 và cơ sở dữ liệu, <strong>không thể hoàn tác</strong>!
                         </div>
 
                         <div className="flex items-center justify-end space-x-2 pt-2">
@@ -860,7 +989,7 @@ export default function ExamDualCarousel() {
                                 type="button"
                                 disabled={isPending}
                                 onClick={() => setConfirmModalOpen(false)}
-                                className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg text-xs transition-colors cursor-pointer"
+                                className="px-3.5 py-1.5 font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg text-xs"
                             >
                                 Hủy bỏ
                             </button>
@@ -868,9 +997,7 @@ export default function ExamDualCarousel() {
                                 type="button"
                                 disabled={isPending}
                                 onClick={executeAction}
-                                className={`px-4 py-1.5 font-bold rounded-lg text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-50 ${pendingActionType === "DELETE"
-                                        ? "bg-red-600 hover:bg-red-700 text-white"
-                                        : "bg-amber-600 hover:bg-amber-700 text-white"
+                                className={`px-4 py-1.5 font-bold rounded-lg text-xs shadow-xs text-white ${pendingActionType === "DELETE" ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"
                                     }`}
                             >
                                 {isPending ? "Đang xử lý..." : "Tôi hiểu, Xác nhận thực hiện"}
@@ -889,11 +1016,7 @@ export default function ExamDualCarousel() {
                                 <Archive className="w-5 h-5 text-red-600" />
                                 <span>Lưu Trữ Sự Kiện Theo Năm</span>
                             </h3>
-                            <button
-                                type="button"
-                                onClick={() => setArchiveModalOpen(false)}
-                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                            >
+                            <button type="button" onClick={() => setArchiveModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -916,13 +1039,9 @@ export default function ExamDualCarousel() {
                                                 className="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors flex items-center justify-between"
                                             >
                                                 <div>
-                                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                                                        {evt.title}
-                                                    </p>
+                                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{evt.title}</p>
                                                     {evt.description && (
-                                                        <p className="text-[11px] text-slate-500 line-clamp-1">
-                                                            {evt.description}
-                                                        </p>
+                                                        <p className="text-[11px] text-slate-500 line-clamp-1">{evt.description}</p>
                                                     )}
                                                 </div>
                                                 <span className="text-[11px] font-mono text-slate-400 font-medium shrink-0 ml-2">

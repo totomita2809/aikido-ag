@@ -9,6 +9,7 @@ import {
     buildEventFolderName,
     renameEventFolderOnR2,
     deleteEventFolderOnR2,
+    getPresignedUploadUrl,
 } from "@/lib/r2";
 
 export interface CarouselImageItem {
@@ -46,6 +47,33 @@ export interface ActionResponse {
     status?: string;
 }
 
+// Kiểu dữ liệu phục vụ Direct Upload
+export interface PresignedRequestItem {
+    clientTempId: string;
+    fileName: string;
+    aspectRatio: "LANDSCAPE" | "PORTRAIT";
+}
+
+export interface PresignedResponseItem {
+    clientTempId: string;
+    uploadUrl: string;
+    publicUrl: string;
+    aspectRatio: "LANDSCAPE" | "PORTRAIT";
+}
+
+export interface DirectSaveImageItem {
+    url: string;
+    aspectRatio: "LANDSCAPE" | "PORTRAIT";
+}
+
+export interface DirectSaveEventInput {
+    title: string;
+    eventDate: string;
+    description?: string;
+    eventKey: string;
+    images: DirectSaveImageItem[];
+}
+
 interface CarouselDelegate {
     create: (args: {
         data: {
@@ -61,6 +89,20 @@ interface CarouselDelegate {
             creatorRole: string;
         };
     }) => Promise<CarouselEventRecord>;
+    createMany: (args: {
+        data: Array<{
+            title: string;
+            eventDate: Date;
+            description: string | null;
+            imageUrl: string;
+            aspectRatio: string;
+            status: string;
+            eventKey: string;
+            creatorId: string;
+            creatorName: string;
+            creatorRole: string;
+        }>;
+    }) => Promise<{ count: number }>;
     findMany: (args: {
         where: { eventKey?: string; status?: string };
     }) => Promise<CarouselEventRecord[]>;
@@ -116,7 +158,89 @@ export async function getCurrentUserRole(): Promise<string | null> {
 }
 
 /**
- * 1. TẠO SỰ KIỆN MỚI
+ * BƯỚC 1 (DIRECT UPLOAD): XIN DANH SÁCH PRESIGNED URL TỪ R2
+ * Chạy siêu nhẹ trên Vercel, trả về URL ký trước để client tự đẩy file lên R2.
+ */
+export async function getUploadPresignedUrls(
+    title: string,
+    eventDate: string,
+    files: PresignedRequestItem[]
+): Promise<{ eventKey: string; items: PresignedResponseItem[] }> {
+    const session = await getSession();
+    if (!session || !session.userId) {
+        throw new Error("Vui lòng đăng nhập để thực hiện");
+    }
+
+    const eventKey = crypto.randomBytes(3).toString("hex");
+    const folderName = buildEventFolderName(title, eventDate, eventKey);
+
+    const items: PresignedResponseItem[] = [];
+    let idx = 1;
+
+    for (const f of files) {
+        const cleanName = f.fileName
+            .replace(/\.[^/.]+$/, "")
+            .replace(/[^a-zA-Z0-9-_]/g, "_");
+        const key = `${folderName}/${idx++}_${cleanName}.webp`;
+        const { uploadUrl, publicUrl } = await getPresignedUploadUrl(key, "image/webp");
+
+        items.push({
+            clientTempId: f.clientTempId,
+            uploadUrl,
+            publicUrl,
+            aspectRatio: f.aspectRatio,
+        });
+    }
+
+    return { eventKey, items };
+}
+
+/**
+ * BƯỚC 2 (DIRECT UPLOAD): LƯU SỰ KIỆN VÀO DATABASE
+ * Sau khi client đã tải trực tiếp toàn bộ ảnh lên R2 thành công.
+ */
+export async function createCarouselEventWithDirectUrls(
+    data: DirectSaveEventInput
+): Promise<ActionResponse> {
+    const session = await getSession();
+    if (!session || !session.userId) {
+        throw new Error("Vui lòng đăng nhập để thực hiện");
+    }
+
+    const isSuperAdmin = session.role === "SUPER_ADMIN";
+    const status = isSuperAdmin ? "APPROVED" : "PENDING_APPROVAL";
+    const parsedEventDate = parseDateInput(data.eventDate);
+    const carouselDelegate = getCarouselDelegate();
+
+    await carouselDelegate.createMany({
+        data: data.images.map((img) => ({
+            title: data.title,
+            eventDate: parsedEventDate,
+            description: data.description || null,
+            imageUrl: img.url,
+            aspectRatio: img.aspectRatio,
+            status,
+            eventKey: data.eventKey,
+            creatorId: session.userId,
+            creatorName: session.name || "Ban Huấn Luyện",
+            creatorRole: session.role,
+        })),
+    });
+
+    revalidatePath("/");
+    revalidatePath("/exams");
+
+    return {
+        success: true,
+        status,
+        message: isSuperAdmin
+            ? `Đã tải ${data.images.length} hình ảnh lên Cloudflare R2 và đăng thành công!`
+            : `Đã gửi ${data.images.length} hình ảnh, vui lòng chờ HLV Trưởng phê duyệt!`,
+    };
+}
+
+/**
+ * TẠO SỰ KIỆN MỚI (Hàm cũ - vẫn giữ để tương thích nếu cần)
  */
 export async function createCarouselEvent(data: CreateCarouselInput): Promise<ActionResponse> {
     const session = await getSession();
@@ -176,9 +300,7 @@ export async function createCarouselEvent(data: CreateCarouselInput): Promise<Ac
 }
 
 /**
- * 2. CHỈNH SỬA TIÊU ĐỀ HOẶC NGÀY
- * - SUPER_ADMIN: Đổi trực tiếp trên R2 và Database ngay lập tức.
- * - COACH: Chỉ được đánh dấu PENDING_UPDATE để chờ HLV Trưởng duyệt.
+ * CHỈNH SỬA TIÊU ĐỀ HOẶC NGÀY
  */
 export async function updateCarouselEventInfo(
     eventKey: string,
@@ -196,7 +318,6 @@ export async function updateCarouselEventInfo(
     const parsedEventDate = parseDateInput(newEventDateStr);
 
     if (!isSuperAdmin) {
-        // Coach sửa -> Đưa vào hàng đợi duyệt, không đổi thư mục R2 ngay
         await carouselDelegate.updateMany({
             where: { eventKey },
             data: {
@@ -212,7 +333,6 @@ export async function updateCarouselEventInfo(
         };
     }
 
-    // SUPER_ADMIN (HLV Trưởng) -> Đổi tên thư mục trên R2 và cập nhật URL
     const newFolderName = buildEventFolderName(newTitle, newEventDateStr, eventKey);
     const updatedFiles = await renameEventFolderOnR2(eventKey, newFolderName);
 
@@ -247,9 +367,7 @@ export async function updateCarouselEventInfo(
 }
 
 /**
- * 3. XÓA SỰ KIỆN
- * - SUPER_ADMIN: Xoá vĩnh viễn trên R2 và Database không thể hoàn tác.
- * - COACH: Chỉ được gửi yêu cầu xóa (PENDING_DELETE).
+ * XÓA SỰ KIỆN
  */
 export async function deleteCarouselEvent(eventKey: string): Promise<ActionResponse> {
     const session = await getSession();
@@ -273,7 +391,6 @@ export async function deleteCarouselEvent(eventKey: string): Promise<ActionRespo
         };
     }
 
-    // SUPER_ADMIN: Xóa vĩnh viễn không thể khôi phục
     await deleteEventFolderOnR2(eventKey);
     await carouselDelegate.deleteMany({
         where: { eventKey },
@@ -289,7 +406,7 @@ export async function deleteCarouselEvent(eventKey: string): Promise<ActionRespo
 }
 
 /**
- * 4. PHÊ DUYỆT SỰ KIỆN (Chỉ dành riêng cho HLV Trưởng - SUPER_ADMIN)
+ * PHÊ DUYỆT SỰ KIỆN (Chỉ dành riêng cho HLV Trưởng - SUPER_ADMIN)
  */
 export async function approveCarouselEvent(eventKey: string): Promise<ActionResponse> {
     const session = await getSession();

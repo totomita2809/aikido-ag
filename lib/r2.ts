@@ -5,6 +5,7 @@ import {
     CopyObjectCommand,
     DeleteObjectsCommand,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const r2Client = new S3Client({
     region: "auto",
@@ -14,6 +15,31 @@ export const r2Client = new S3Client({
         secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
     },
 });
+
+/**
+ * Sinh Presigned URL để client upload trực tiếp lên Cloudflare R2
+ */
+export async function getPresignedUploadUrl(
+    key: string,
+    contentType: string = "image/webp"
+): Promise<{ uploadUrl: string; publicUrl: string }> {
+    const bucket = process.env.R2_BUCKET_NAME;
+    const publicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, "");
+
+    const command = new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        ContentType: contentType,
+    });
+
+    // Link có hạn sử dụng trong 10 phút (600 giây)
+    const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: 600 });
+
+    return {
+        uploadUrl,
+        publicUrl: `${publicUrl}/${key}`,
+    };
+}
 
 /**
  * Chuyển đổi tiếng Việt có dấu thành không dấu, thay khoảng trắng bằng dấu gạch ngang
